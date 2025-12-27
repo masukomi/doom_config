@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Intra-Chapter Content Warning Other
+# key: iccwo
+# --
+⚠️ Start ─────────────────────────
+`yas-selected-text`$0
+⚠️ End ───────────────────────────
