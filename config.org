@@ -705,30 +705,28 @@ NOTE: The ~set-face-attribute~ method of setting faces works, but for reasons I 
 #+begin_src elisp :tangle config.el
 (use-package centaur-tabs
   :demand
+  :init
+  ;; Must be set BEFORE package loads for C-c t keybindings to work
+  (setq centaur-tabs-enable-key-bindings t)
   :config
+  (setq centaur-tabs-style "box"
+        centaur-tabs-height 32
+        centaur-tabs-set-icons t
+        centaur-tabs-set-bar 'left ; or 'left or 'under
+        centaur-tabs-set-modified-marker t
+        centaur-tabs-icon-type 'nerd-icons)  ; or 'all-the-icons
+  ; centaur-tabs-change-fonts "arial" 160
   (centaur-tabs-mode t)
+  ; group them by which projectile project we're in
+  (centaur-tabs-group-by-projectile-project)
   :hook
   (dired-mode . centaur-tabs-local-mode) ; disable in dired
   :bind
   (:map evil-normal-state-map
         ("g t" . centaur-tabs-ace-jump))
-
-  )
-  ; the default key binding
-  ;; ("C-<prior>" . centaur-tabs-backward)
-  ;; ("C-<next>" . centaur-tabs-forward)
-
-(setq centaur-tabs-style "box"
-      centaur-tabs-height 32
-      centaur-tabs-set-icons t
-      centaur-tabs-set-bar 'left ; or 'left or 'under
-      centaur-tabs-set-modified-marker t
-      centaur-tabs-enable-key-bindings t
-      centaur-tabs-icon-type 'nerd-icons)  ; or 'all-the-icons
-; centaur-tabs-change-fonts "arial" 160
-
-; group them by which projectile project we're in
-(centaur-tabs-group-by-projectile-project)
+  ;; Add C-c t c to close current tab (not provided by default)
+  (:map centaur-tabs-mode-map
+        ("C-c t c" . centaur-tabs--kill-this-buffer-dont-ask)))
 #+end_src
 
 *Note*
