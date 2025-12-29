@@ -289,6 +289,7 @@ fd is too smart for its own good. It does fancy things like considering the cont
 (setq projectile-git-fd-args "--no-ignore -H -0 -E .git -tf --strip-cwd-prefix")
 #+end_src
 
+
 Adding ~--no-ignore~ makes it start outputting /almost everything/. ~.git~ directory and some other things will still be ignored.
 
 Unfortunately, there /will/ be cases where it's /not/ ignoring things it should, like =*.idea= files or =vendor= directories. So, now we need to filter the mostly unfiltered output of =fd=.
@@ -296,6 +297,12 @@ Unfortunately, there /will/ be cases where it's /not/ ignoring things it should,
 ***  filtering out unwanted stuff
 **** .projectile
 [[https://docs.projectile.mx/projectile/projects.html#ignoring-files][Documented here]] the ~.projectile~ file functions much like a ~.gitignore~ or ~.fdignore~
+
+But, we can also use ~projectile-globally-ignored-file-suffixes~
+
+#+begin_src elisp :tangle config.el
+(setq projectile-globally-ignored-file-suffixes '("fold"))
+#+end_src
 
 **** .fdignore
 Note: this is the strategy I employed before learning about ~.projectile~ HOWEVER in most cases you don't need this. Just create a =~/.config/fd/ignore= file that will be used by =fd= as a global ignore file.
@@ -714,7 +721,7 @@ NOTE: The ~set-face-attribute~ method of setting faces works, but for reasons I 
 (setq centaur-tabs-style "box"
       centaur-tabs-height 32
       centaur-tabs-set-icons t
-      centaur-tabs-set-bar 'under ; or 'left or 'under
+      centaur-tabs-set-bar 'left ; or 'left or 'under
       centaur-tabs-set-modified-marker t
       centaur-tabs-enable-key-bindings t
       centaur-tabs-icon-type 'nerd-icons)  ; or 'all-the-icons
@@ -774,7 +781,7 @@ In addition to the =g t= binding to enable the ace-jump style numbers centaur-ta
 
 If you want to enable a series of key bindings with different tab managing functions, put the following in your configuration before the package is loaded (if you use =use-package=, this should go in the =:init=  section):
 
-#+begin_src lisp
+#+begin_src elisp
 (setq centaur-tabs-enable-key-bindings t)
 #+end_src
 
@@ -2532,6 +2539,17 @@ Full disclaimer, I set this up, but I never use ediff because [[https://kaleidos
 (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
 #+end_src
 
+** LLMs
+*** Agent-shell
+#+begin_src elisp :tangle config.el
+; agent-shell configuration for Claude
+(require 'acp)
+(require 'agent-shell)
+(setq agent-shell-anthropic-authentication
+      (agent-shell-anthropic-make-authentication :login t))
+; make claude our default
+(setq agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config))
+#+end_src
 * Misc / Troubleshooting
 After a recent upgrade, I started having trouble with the system pausing as I was typing. Very annoying. This is what [[https://github.com/lastquestion/explain-pause-mode][explain-pause-mode]] was designed to help with. It's loaded via =package.el=
 

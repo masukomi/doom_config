@@ -66,7 +66,7 @@
 
 ; UI STUFF
 
-(package! centaur-tabs)
+;; (package! centaur-tabs) ; included via "tabs" in init.el
 ; extends Vline Mode https://www.emacswiki.org/emacs/VlineMode
 (package! col-highlight)
 ;; (column-highlight-mode 0) ; 1 = highlighting, 0 = off
@@ -107,8 +107,20 @@
 ; -- Docker
 (package! dockerfile-mode)
 
+; -- Dylan
+; The dylan package (Dylan editing modes)
+(package! dylan)
+; The dime package (Dylan interaction mode, an IDE derived from SLIME):
+; requires dswank to be installed which is part of OpenDylan
+; see https://github.com/dylan-lang/dylan-emacs-support?tab=readme-ov-file#setting-up-dime
+; for instructions on configuring dime in emacs once you have it installed
+;(package! dime)
+
 ; -- Elisp
 (package! elisp-autofmt)
+
+; -- Elixir (with treesitter)
+(package! elixir-ts-mode)
 
 ; -- Fennel
 ; https://github.com/emacsmirror/fennel-mode#readme
@@ -207,6 +219,12 @@
 (package! toc-org) ; table of contents generator
 
 ; UTILITIES
+
+; agent-shell
+; https://github.com/xenodium/agent-shell
+(package! shell-maker)
+(package! acp)
+(package! agent-shell)
 
 ; dtrt-indent: An Emacs minor mode that guesses the indentation offset
 ; originally used for creating source code files and transparently adjusts the

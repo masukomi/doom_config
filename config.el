@@ -98,6 +98,8 @@ current buffer's, reload dir-locals."
 (setq projectile-indexing-method 'hybrid)
 (setq projectile-git-fd-args "--no-ignore -H -0 -E .git -tf --strip-cwd-prefix")
 
+(setq projectile-globally-ignored-file-suffixes '("fold"))
+
 (setq projectile-track-known-projects-automatically nil)
 
 (with-eval-after-load 'helm-projectile
@@ -241,7 +243,7 @@ current buffer's, reload dir-locals."
 (setq centaur-tabs-style "box"
       centaur-tabs-height 32
       centaur-tabs-set-icons t
-      centaur-tabs-set-bar 'under ; or 'left or 'under
+      centaur-tabs-set-bar 'left ; or 'left or 'under
       centaur-tabs-set-modified-marker t
       centaur-tabs-enable-key-bindings t
       centaur-tabs-icon-type 'nerd-icons)  ; or 'all-the-icons
@@ -267,6 +269,7 @@ current buffer's, reload dir-locals."
      (string-prefix-p "*Flycheck" name)
      (string-prefix-p "*tramp" name)
      (string-prefix-p " *Mini" name)
+     (not (not (string-match "[[:blank:]]+\*Minibuf-[[:digit:]]+\*" name)))
      (string-prefix-p "*help" name)
      (string-prefix-p "*straight" name)
      (string-prefix-p " *temp" name)
@@ -1088,3 +1091,11 @@ See options: `dired-hide-details-hide-symlink-targets',
 ;;revert windows on exit - needs winner mode
 (winner-mode)
 (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
+
+; agent-shell configuration for Claude
+(require 'acp)
+(require 'agent-shell)
+(setq agent-shell-anthropic-authentication
+      (agent-shell-anthropic-make-authentication :login t))
+; make claude our default
+(setq agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config))
