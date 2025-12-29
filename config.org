@@ -792,8 +792,20 @@ I want it to _only_ get rid of the workspace and _never_ close the window
 (unless maybe it's the only one).
 By default this is mapped to +workspace/close-window-or-workspace
 
+If there are open tabs in the current workspace, close the current tab.
+Otherwise, kill the workspace.
+
 #+begin_src elisp :tangle config.el
-(global-set-key (kbd "s-w")  '+workspace/kill)
+(defun masu/close-tab-or-workspace ()
+  "Close the current tab if there are tabs open in the workspace.
+Otherwise, kill the workspace."
+  (interactive)
+  (let ((tabset (centaur-tabs-current-tabset)))
+    (if (and tabset (> (length (centaur-tabs-tabs tabset)) 1))
+        (centaur-tabs--kill-this-buffer-dont-ask)
+      (+workspace/kill (+workspace-current-name)))))
+
+(global-set-key (kbd "s-w") 'masu/close-tab-or-workspace)
 #+end_src
 
 ** Selection Helper

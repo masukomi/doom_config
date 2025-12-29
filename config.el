@@ -279,7 +279,16 @@ current buffer's, reload dir-locals."
           (not (file-name-extension name)))
      )))
 
-(global-set-key (kbd "s-w")  '+workspace/kill)
+(defun masu/close-tab-or-workspace ()
+  "Close the current tab if there are tabs open in the workspace.
+Otherwise, kill the workspace."
+  (interactive)
+  (let ((tabset (centaur-tabs-current-tabset)))
+    (if (and tabset (> (length (centaur-tabs-tabs tabset)) 1))
+        (centaur-tabs--kill-this-buffer-dont-ask)
+      (+workspace/kill (+workspace-current-name)))))
+
+(global-set-key (kbd "s-w") 'masu/close-tab-or-workspace)
 
 ; Ctrl + =/+ contracts or expands visual selection
 (map! :nv "C-=" #'er/contract-region
