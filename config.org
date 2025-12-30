@@ -1346,7 +1346,7 @@ Note that the [[https://github.com/rougier/svg-tag-mode][svg-tag-mode]] has nota
     ; define the characters used before different heading levels in org mode
     org-modern-replace-stars "◉○◈◇✩"
     ;; Org styling, hide markup etc.
-    org-hide-emphasis-markers t
+    ;org-hide-emphasis-markers t
     ;org-pretty-entities t
     org-agenda-tags-column 0
     ;org-ellipsis "⤵"
