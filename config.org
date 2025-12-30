@@ -49,6 +49,7 @@ At the time of writing this consists of
 
 - ~eruby-mode.el~
 - ~flycheck-standardrb.el~
+- ~masu-emojis.el~
 - ~maybe-insert-org-entity.el~
 - ~org-emphasis-marker-face.el~
 - ~org-fold-restore.el~
@@ -701,51 +702,21 @@ NOTE: The ~set-face-attribute~ method of setting faces works, but for reasons I 
   )
 #+end_src
 *** Easier Emoji
-The [[https://github.com/iqbalansari/emacs-emojify][emacs-emojify]] offers support for Slack / GitHub style emojis, as well as easy insertion of other emojis.
+Custom emoji picker using ~custom/masu-emojis.el~ which includes 1800+ unicode emojis plus custom additions/aliases. Edit that file to add more.
 
-By default it handles ascii, unicode, and "github" style emojis. This is controlled from the ~emojify-emoji-styles~ & ~emojify-display-style~ variables. Unfortunately, I was hoping this worked like slack, where you type =:wink:= and it replaces that with 😉. What this does is look for special character strings like =:wink:= and makes it /appear/ as if they've been replaced with the emoji. That wasn't what I wanted and was interfered with by some of my other org-mode visual tweaks. But, This package still makes it easier to insert emoji than the ~insert-character~ function. ~C-c e~ wasn't being used so I mapped all the useful =emacs-emojify= functions under there.
-
-Note it can do custom emoji and image emoji, but I don't want to get in the habit of creating files with emoji that only work for me.
-
-
-| Key     | Function                        | Description                     |
-|---------|---------------------------------|---------------------------------|
-| C-c e i | emojify-insert-emoji            | Search & insert actual emoji    |
-| C-c e d | emojify-describe-emoji-at-point | Describe emoji under cursor     |
-| C-c e l | emojify-list-emojis             | Browse all available emojis     |
-| C-c e a | emojify-apropos-emoji           | Search emojis by pattern        |
-| C-c e m | emojify-mode                    | Toggle display mode (if wanted) |
-
-Now =C-c e i= will let you search for "wink" and insert the actual 😉 character into your buffer.
-
-First you need the emojify package loaded. See ~packages.el~
+| Key     | Function                 | Description                                       |
+|---------+--------------------------+---------------------------------------------------|
+| C-c e i | masu/insert-custom-emoji | All unicode emojis + custom                       |
+| C-c e c | insert-char              | lots of useful unicode characters. not just emoji |
 
 #+BEGIN_SRC elisp :tangle config.el
-(use-package emojify
-  :init
-  ;; Custom emojis and aliases - must be set BEFORE emojify loads
-  ;; Format: (":name:" . (("name" . "Display Name") ("style" . "github") ("unicode" . "X")))
-  (setq emojify-user-emojis
-        '(;; New emojis not in default list
-          (":transgender_flag:" . (("name" . "Transgender Flag")
-                                   ("style" . "github")
-                                   ("unicode" . "🏳️‍⚧️")))
-          ;; Aliases for existing emojis
-          (":mad:" . (("name" . "Angry Face")
-                      ("style" . "github")
-                      ("unicode" . "😠")))))
-  :config
-  (when (member "Apple Color Emoji" (font-family-list))
-    (set-fontset-font
-     t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend))
-  ;; Define C-c e as emojify prefix keymap
-  (define-prefix-command 'emojify-command-map)
-  (global-set-key (kbd "C-c e") 'emojify-command-map)
-  (define-key emojify-command-map (kbd "i") #'emojify-insert-emoji)
-  (define-key emojify-command-map (kbd "d") #'emojify-describe-emoji-at-point)
-  (define-key emojify-command-map (kbd "l") #'emojify-list-emojis)
-  (define-key emojify-command-map (kbd "a") #'emojify-apropos-emoji)
-  (define-key emojify-command-map (kbd "m") #'emojify-mode))
+(load "masu-emojis")
+
+;; Define C-c e as emoji prefix keymap
+(define-prefix-command 'emojify-command-map)
+(global-set-key (kbd "C-c e") 'emojify-command-map)
+(define-key emojify-command-map (kbd "i") #'masu/insert-custom-emoji)
+(define-key emojify-command-map (kbd "c") #'insert-char)
 #+END_SRC
 
 *** Tabs!

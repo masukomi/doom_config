@@ -226,31 +226,13 @@ current buffer's, reload dir-locals."
   (nerd-icons-font-family "JetBrains Mono Medium")
   )
 
-(use-package emojify
-  :init
-  ;; Custom emojis and aliases - must be set BEFORE emojify loads
-  ;; Format: (":name:" . (("name" . "Display Name") ("style" . "github") ("unicode" . "X")))
-  (setq emojify-user-emojis
-        '(;; New emojis not in default list
-          (":transgender_flag:" . (("name" . "Transgender Flag")
-                                   ("style" . "github")
-                                   ("unicode" . "🏳️‍⚧️")))
-          ;; Aliases for existing emojis
-          (":mad:" . (("name" . "Angry Face")
-                      ("style" . "github")
-                      ("unicode" . "😠")))))
-  :config
-  (when (member "Apple Color Emoji" (font-family-list))
-    (set-fontset-font
-     t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend))
-  ;; Define C-c e as emojify prefix keymap
-  (define-prefix-command 'emojify-command-map)
-  (global-set-key (kbd "C-c e") 'emojify-command-map)
-  (define-key emojify-command-map (kbd "i") #'emojify-insert-emoji)
-  (define-key emojify-command-map (kbd "d") #'emojify-describe-emoji-at-point)
-  (define-key emojify-command-map (kbd "l") #'emojify-list-emojis)
-  (define-key emojify-command-map (kbd "a") #'emojify-apropos-emoji)
-  (define-key emojify-command-map (kbd "m") #'emojify-mode))
+(load "masu-emojis")
+
+;; Define C-c e as emoji prefix keymap
+(define-prefix-command 'emojify-command-map)
+(global-set-key (kbd "C-c e") 'emojify-command-map)
+(define-key emojify-command-map (kbd "i") #'masu/insert-custom-emoji)
+(define-key emojify-command-map (kbd "c") #'insert-char)
 
 (use-package centaur-tabs
   :demand
