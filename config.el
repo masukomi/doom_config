@@ -878,7 +878,7 @@ See options: `dired-hide-details-hide-symlink-targets',
       ;; We allow multi-word keywords by default.  The author's personal
       ;; preference is for single-word keywords for a more rigid workflow.
 
-(setq denote-file-type nil) ; Org is the default, set others here
+(setq denote-file-type nil ; Org is the default, set others here
       denote-prompts '(title keywords)
       denote-date-format nil) ; read doc string
 

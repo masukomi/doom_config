@@ -2184,7 +2184,7 @@ When we create a new note ( ~C-c n n~ ) , I want it to be in org-mode - duh - an
 There are [[https://protesilaos.com/emacs/denote#h:7f918854-5ed4-4139-821f-8ee9ba06ad15][instructions to change the frontmatter]] but I've never felt the need.
 
 #+BEGIN_SRC elisp :tangle config.el
-(setq denote-file-type nil) ; Org is the default, set others here
+(setq denote-file-type nil ; Org is the default, set others here
       denote-prompts '(title keywords)
       denote-date-format nil) ; read doc string
 #+END_SRC
