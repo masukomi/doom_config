@@ -126,10 +126,10 @@ If you get really annoyed you can disable auto-save and auto-backup entirely, bu
 #+end_src
 
 ** Stop being weird about cut
-Everyone else uses ~⌘+x~ or ~^x~. I get that Emacs' way predated fancy GUI OSs, but it sucks to be literally the only app on my computer that refuses to copy & paste with normal shortcuts.
+Everyone else uses ~⌘+x~ or ~^x~. I get that Emacs' way predated fancy GUI OSs, but it sucks to be literally the only app on my computer that refuses to copy & paste with normal shortcuts. I'm on a mac so I've set this to ~⌘+x~
 
 #+begin_src elisp :tangle config.el
-(bind-key* (kbd "C-x") 'kill-region)
+(bind-key* (kbd "s-x") 'kill-region)
 #+end_src
 
 Because someone's going to read the above and think I'm an idiot for not turning on CUA:
@@ -845,12 +845,12 @@ If you're in the bottom one, you can use ~buf-move-up~ to swap it with the one a
 
 If you just want to toggle contents without thinking about direction there's Toggle Window Split. It was created by JeffDWork and shared on the [[https://www.emacswiki.org/emacs/ToggleWindowSplit][Emacs Wiki]]. It swaps the contents of each half of a split window.
 
-The ~toggle-window-split~ function is bound to the =C-x 4= prefix key. I don't know what that means.
+The ~toggle-window-split~ function is bound to ~C-x 4 t~ which… is too much and needs to be changed to something else.
 
 #+begin_src elisp :tangle config.el
 ;; Toggle Window Split by JeffDWork
 ;; found here: https://www.emacswiki.org/emacs/ToggleWindowSplit
-(defun toggle-window-split ()
+(defun masu/toggle-window-split ()
   (interactive)
   (if (= (count-windows) 2)
       (let* ((this-win-buffer (window-buffer))
@@ -875,14 +875,14 @@ The ~toggle-window-split~ function is bound to the =C-x 4= prefix key. I don't k
 	  (select-window first-win)
 	  (if this-win-2nd (other-window 1))))))
 
-(define-key ctl-x-4-map "t" 'toggle-window-split)
+(define-key ctl-x-4-map "t" 'masu/toggle-window-split)
 #+end_src
 
 There's also a ~toggle-frame-split~ function. I've copied it below to have a backup, but I don't have this enabled.
 
 ⚠️ NOT tangled
 #+begin_src elisp
-(defun toggle-frame-split ()
+(defun masu/toggle-frame-split ()
   "If the frame is split vertically, split it horizontally or vice versa.
 Assumes that the frame is only split into two."
   (interactive)
@@ -895,7 +895,7 @@ Assumes that the frame is only split into two."
     (switch-to-buffer nil))) ; restore the original window in this part of the frame
 
 ;; I don't use the default binding of 'C-x 5', so use toggle-frame-split instead
-(global-set-key (kbd "C-x 5") 'toggle-frame-split)
+(global-set-key (kbd "C-x 5") 'masu/toggle-frame-split)
 #+end_src
 ** Cursors should follow the actual line
 By default when you tell emacs to go to the end of the line it goes to the end of the /visual/ line, instead of the actual end of the line. I don't know why anyone thought this was a good default.
@@ -910,7 +910,7 @@ By default when you tell emacs to go to the end of the line it goes to the end o
 ** Make URLs clickable outside of org-mode
 So you /can/ easily make urls clickable with ~(goto-address-mode t)~, /but/ you shouldn't, because there's ~orglink-mode~ which is better. See packages.el to turn that on.
 
-** Folding
+** Code-Folding
 [[https://github.com/emacsorphanage/yafolding][yafolding]] is Yet Another Folding extension for Emacs which folds code based on indentation. This is helpful for languages like ruby where function bodies aren't bounded by simple things like curly braces. There's a screenshot of it in action in the repo's README.
 
 
@@ -1791,7 +1791,7 @@ Default Key Bindings:
 - ~C-c C-c~  plantuml-preview: renders a PlantUML diagram from the current buffer in the best supported format
 - ~C-u C-c C-c~  plantuml-preview in other window
 - ~C-u C-u C-c C-c~ plantuml-preview in other frame
-** Folding
+** Org-mode Folding
 *** Remember fold state
 This script (~custom/org-fold-restore.el~) will remember the fold state /if/ the file has been modified since the last time. If you open it up, muck with fold state, but don't change anything else, it won't remember the fold changes.
 
@@ -1803,7 +1803,7 @@ This script (~custom/org-fold-restore.el~) will remember the fold state /if/ the
 
 Note: this works by storing the fold state in a file with that same name as the file you're working on with =.fold= appended. So, the fold file for this document is =config.org.fold=
 
-See[[*.projectile][.projectile]] above for how to hide these from Projectile.
+See [[*.projectile][.projectile]] above for how to hide these from Projectile.
 
 *** fold everything by default?
 The following will start everything off entirely folded. That is
@@ -1874,8 +1874,6 @@ But, having them visible still sucks. That's where this lovely little hack by Ma
 (with-eval-after-load 'org
   (load "org-emphasis-marker-face"))
 #+end_src
-
-
 
 If you set ~org-hide-emphasis-markers t~ to hide emphasis markers, then you might want to try enabling [[https://github.com/awth13/org-appear][org-appear-mode]].
 

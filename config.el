@@ -35,7 +35,7 @@
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
-(bind-key* (kbd "C-x") 'kill-region)
+(bind-key* (kbd "s-x") 'kill-region)
 
 ; kinda-sorta forcing initial window size because it seems incapable
 ; of remembering
@@ -98,6 +98,7 @@ current buffer's, reload dir-locals."
 (setq projectile-indexing-method 'hybrid)
 (setq projectile-git-fd-args "--no-ignore -H -0 -E .git -tf --strip-cwd-prefix")
 
+; make projectile ignore .fold files from org-fold-restore.el
 (setq projectile-globally-ignored-file-suffixes '("fold"))
 
 (setq projectile-track-known-projects-automatically nil)
@@ -306,7 +307,7 @@ Otherwise, kill the workspace."
 
 ;; Toggle Window Split by JeffDWork
 ;; found here: https://www.emacswiki.org/emacs/ToggleWindowSplit
-(defun toggle-window-split ()
+(defun masu/toggle-window-split ()
   (interactive)
   (if (= (count-windows) 2)
       (let* ((this-win-buffer (window-buffer))
@@ -331,7 +332,7 @@ Otherwise, kill the workspace."
 	  (select-window first-win)
 	  (if this-win-2nd (other-window 1))))))
 
-(define-key ctl-x-4-map "t" 'toggle-window-split)
+(define-key ctl-x-4-map "t" 'masu/toggle-window-split)
 
 ; make the cursor go to the actual end of the line
 ; instead of the VISUAL end of the line. ugh.
