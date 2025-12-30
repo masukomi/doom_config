@@ -301,6 +301,7 @@ Unfortunately, there /will/ be cases where it's /not/ ignoring things it should,
 But, we can also use ~projectile-globally-ignored-file-suffixes~
 
 #+begin_src elisp :tangle config.el
+; make projectile ignore .fold files from org-fold-restore.el
 (setq projectile-globally-ignored-file-suffixes '("fold"))
 #+end_src
 
@@ -790,10 +791,9 @@ This will enable a series of key bindings for centaur-tabs prefixed by “C-c t�
 Sometimes command+w closes a workspace. Sometimes it closes the window.
 I want it to _only_ get rid of the workspace and _never_ close the window
 (unless maybe it's the only one).
-By default this is mapped to +workspace/close-window-or-workspace
 
 If there are open tabs in the current workspace, close the current tab.
-Otherwise, kill the workspace.
+Otherwise, kill the workspace. This gives you a function similar to a web browser where if you keep hitting =⌘-w= it'll keep closing tabs until you close the last one, in which case it'll then close the workspace.
 
 #+begin_src elisp :tangle config.el
 (defun masu/close-tab-or-workspace ()
@@ -845,7 +845,7 @@ If you're in the bottom one, you can use ~buf-move-up~ to swap it with the one a
 
 If you just want to toggle contents without thinking about direction there's Toggle Window Split. It was created by JeffDWork and shared on the [[https://www.emacswiki.org/emacs/ToggleWindowSplit][Emacs Wiki]]. It swaps the contents of each half of a split window.
 
-The ~toggle-window-split~ function is bound to the C-x 4 prefix key. Whatever that is.
+The ~toggle-window-split~ function is bound to the =C-x 4= prefix key. I don't know what that means.
 
 #+begin_src elisp :tangle config.el
 ;; Toggle Window Split by JeffDWork
@@ -1795,11 +1795,16 @@ Default Key Bindings:
 *** Remember fold state
 This script (~custom/org-fold-restore.el~) will remember the fold state /if/ the file has been modified since the last time. If you open it up, muck with fold state, but don't change anything else, it won't remember the fold changes.
 
+⚠️ This is a… problematic tool that needs work. Sometimes the =.fold= file gets borked and you can't open your file until you realize you need to delete the borked =.fold= file. And it folds things weirdly. I'm undecided if I'm going to keep it, hack it, or abandon it. I'm using it for now.
+
 #+begin_src elisp :tangle config.el
 (load "org-fold-restore")
 #+end_src
 
 Note: this works by storing the fold state in a file with that same name as the file you're working on with =.fold= appended. So, the fold file for this document is =config.org.fold=
+
+See[[*.projectile][.projectile]] above for how to hide these from Projectile.
+
 *** fold everything by default?
 The following will start everything off entirely folded. That is
 to say, just showing headings, with their contents "folded" away. I go back and forth on whether this is a good thing or a bad thing. If it's not tangled, I'm currently on the "bad thing" side of the fence. 😉
