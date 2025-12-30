@@ -227,6 +227,18 @@ current buffer's, reload dir-locals."
   )
 
 (use-package emojify
+  :init
+  ;; Custom emojis and aliases - must be set BEFORE emojify loads
+  ;; Format: (":name:" . (("name" . "Display Name") ("style" . "github") ("unicode" . "X")))
+  (setq emojify-user-emojis
+        '(;; New emojis not in default list
+          (":transgender_flag:" . (("name" . "Transgender Flag")
+                                   ("style" . "github")
+                                   ("unicode" . "🏳️‍⚧️")))
+          ;; Aliases for existing emojis
+          (":mad:" . (("name" . "Angry Face")
+                      ("style" . "github")
+                      ("unicode" . "😠")))))
   :config
   (when (member "Apple Color Emoji" (font-family-list))
     (set-fontset-font
