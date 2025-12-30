@@ -871,20 +871,20 @@ See options: `dired-hide-details-hide-symlink-targets',
 
 (setq denote-directory (expand-file-name "~/Documents/notes/"))
 
-(setq denote-known-keywords '("daily" "todo" "project"))
-(setq denote-infer-keywords t)
-(setq denote-sort-keywords t)
-;; We allow multi-word keywords by default.  The author's personal
-;; preference is for single-word keywords for a more rigid workflow.
-(setq denote-allow-multi-word-keywords nil)
+(setq denote-known-keywords '("daily" "todo" "project")
+      denote-infer-keywords t
+      denote-sort-keywords t
+      denote-allow-multi-word-keywords nil)
+      ;; We allow multi-word keywords by default.  The author's personal
+      ;; preference is for single-word keywords for a more rigid workflow.
 
 (setq denote-file-type nil) ; Org is the default, set others here
-(setq denote-prompts '(title keywords))
-(setq denote-date-format nil) ; read doc string
+      denote-prompts '(title keywords)
+      denote-date-format nil) ; read doc string
 
-(setq denote-link-fontify-backlinks t)
+(setq denote-link-fontify-backlinks t
+      denote-dired-rename-expert nil)
 (add-hook 'text-mode-hook #'denote-fontify-links-mode-maybe)
-(setq denote-dired-rename-expert nil)
 
 
 (add-hook 'dired-mode-hook #'denote-dired-mode)
@@ -1018,10 +1018,6 @@ See options: `dired-hide-details-hide-symlink-targets',
       :init
       (add-to-list 'exec-path "~/workspace/reference/elixir/elixir-ls/release"))
 
-;;------------- FENNEL
-(autoload 'fennel-mode "/path/to/fennel-mode/fennel-mode" nil t)
-(add-to-list 'auto-mode-alist '("\\.fnl\\'" . fennel-mode))
-
 ;;------------- HTML
 (require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
@@ -1034,11 +1030,6 @@ See options: `dired-hide-details-hide-symlink-targets',
 (add-to-list 'auto-mode-alist '("\\.eex\\'" . web-mode))
 ; vvv--- live eex
 (add-to-list 'auto-mode-alist '("\\.leex\\'" . web-mode))
-
-;;------------- LUA
-(autoload 'lua-mode "lua-mode" "Lua editing mode." t)
-(add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
-(add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
 
 ;;------------- RACKET
 (defun raco-fmt ()
@@ -1104,6 +1095,7 @@ See options: `dired-hide-details-hide-symlink-targets',
 (require 'acp)
 (require 'agent-shell)
 (setq agent-shell-anthropic-authentication
-      (agent-shell-anthropic-make-authentication :login t))
-; make claude our default
-(setq agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config))
+        (agent-shell-anthropic-make-authentication :login t)
+      ; make claude our default. this doesn't work. I don't know why.
+      agent-shell-preferred-agent-config
+        (agent-shell-anthropic-make-claude-code-config))

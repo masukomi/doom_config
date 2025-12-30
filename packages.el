@@ -124,10 +124,10 @@
 
 ; -- Fennel
 ; https://github.com/emacsmirror/fennel-mode#readme
-(package! fennel-mode)
+;; (package! fennel-mode)
 ; LSP language server for fennel
-(package! fennel-ls
-  :recipe (:host sourcehut :repo "xerool/fennel-ls"))
+;; (package! fennel-ls
+;;   :recipe (:host sourcehut :repo "xerool/fennel-ls"))
 
 ; -- Fish shell
 (package! fish-mode)
@@ -151,7 +151,7 @@
 (package! lsp-ui) ; https://emacs-lsp.github.io/lsp-ui/
 
 ; -- Lua
-(package! lua-mode)
+;; (package! lua-mode)
 
 ; -- protobuffers
 (package! protobuf-mode)

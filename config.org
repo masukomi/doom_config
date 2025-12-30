@@ -2167,12 +2167,12 @@ Keywords can be anything. The examples are emacs, philosophy, politics, economic
 ~denote-sort-keywords~ being non-nil means that when it shows me the list of them it'll be alphabetically sorted. Technically it's whatever ~string-lessp~ sorting produces. Fortunately it's got filtering so you just start typing the keyword and it'll filter the list down to just the things that match which you can then select. You can, of course, tag a file with multiple keywords.
 
 #+BEGIN_SRC elisp :tangle config.el
-(setq denote-known-keywords '("daily" "todo" "project"))
-(setq denote-infer-keywords t)
-(setq denote-sort-keywords t)
-;; We allow multi-word keywords by default.  The author's personal
-;; preference is for single-word keywords for a more rigid workflow.
-(setq denote-allow-multi-word-keywords nil)
+(setq denote-known-keywords '("daily" "todo" "project")
+      denote-infer-keywords t
+      denote-sort-keywords t
+      denote-allow-multi-word-keywords nil)
+      ;; We allow multi-word keywords by default.  The author's personal
+      ;; preference is for single-word keywords for a more rigid workflow.
 #+END_SRC
 
 When we create a new note ( ~C-c n n~ ) , I want it to be in org-mode - duh - and that's the default. And I want it to prompt me for a title, and then keywords. In the "frontmatter" it's going to set a date format. By default it's setting it based on the file type. A decision I don't understand, but don't have an opinion about either. I go with the defaults.
@@ -2185,8 +2185,8 @@ There are [[https://protesilaos.com/emacs/denote#h:7f918854-5ed4-4139-821f-8ee9b
 
 #+BEGIN_SRC elisp :tangle config.el
 (setq denote-file-type nil) ; Org is the default, set others here
-(setq denote-prompts '(title keywords))
-(setq denote-date-format nil) ; read doc string
+      denote-prompts '(title keywords)
+      denote-date-format nil) ; read doc string
 #+END_SRC
 
 Denote lets you easily insert links to other denote notes, and headings within them (org-mode only). If you want it to prompt you to choose a heading you can set ~denote-org-extras-link-to-heading~ I don't use a lot of cross-linking so I don't have an opinion here & I leave it off.
@@ -2210,9 +2210,9 @@ I failed to leave myself a note about ~denote-dired-rename-expert~ I have no ide
 If you use Denote files in directories all over your computer you can say ~(add-hook 'dired-mode-hook #'denote-dired-mode)~, but if you want to restrict the Denote "fontification" to files in a limited set of directories it's a little more configuration. The ~dired-mode-in-directories~ and ~denote-dired-directories~ work together to do fine tune where this is applied. However there's a much easier way.
 
 #+BEGIN_SRC elisp :tangle config.el
-(setq denote-link-fontify-backlinks t)
+(setq denote-link-fontify-backlinks t
+      denote-dired-rename-expert nil)
 (add-hook 'text-mode-hook #'denote-fontify-links-mode-maybe)
-(setq denote-dired-rename-expert nil)
 
 
 (add-hook 'dired-mode-hook #'denote-dired-mode)
@@ -2406,9 +2406,10 @@ I'm using ~reformatter~ to auto-format Elixir code. You can find out more detail
 
 This is the required config for [[https://github.com/emacsmirror/fennel-mode#readme][fennel-mode]] but [[https://git.sr.ht/~xerool/fennel-ls][fennel-ls]] (language server) is also being loaded.
 
-#+begin_src elisp :tangle config.el
+⚠️ not tangled because I'm not fenneling right now & I don't understand why the docs claim the autoload is needed.
+#+begin_src elisp
 ;;------------- FENNEL
-(autoload 'fennel-mode "/path/to/fennel-mode/fennel-mode" nil t)
+(autoload 'fennel-mode "~/.config/emacs/.local/straight/repos/fennel-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.fnl\\'" . fennel-mode))
 #+end_src
 ** HTML
@@ -2437,7 +2438,8 @@ Also of note is ~mweb-tags~ which teaches it how to find the CSS or JavaScript s
 ** Lua
 …is another language I touch from time to time.
 
-#+begin_src elisp :tangle config.el
+⚠️ not tangled
+#+begin_src elisp
 ;;------------- LUA
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
 (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
@@ -2486,7 +2488,7 @@ for the moment.
 (remove-hook 'ruby-mode-hook #'rubocop-mode)
 #+END_SRC
 ** YAML
-Oddly, emacs doesn't seem to know that =.yml= is a common file extension for yaml.
+Oddly, emacs doesn't seem to know that =.yml= is a common file extension for yaml. Do emacs geeks not like YAML?
 
 #+begin_src elisp :tangle config.el
 (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
@@ -2535,7 +2537,7 @@ The one that I used regularly was it's integration of [[https://git-scm.com/docs
 #+end_src
 ** Diffs
 
-Emacs, unsurprisingly, has a built in diffing tool. It's called ediff. Here are some helpful configs for making the experience of using it a little nicer. They were found [[https://pragmaticemacs.wordpress.com/2015/06/13/visualise-and-copy-differences-between-files/][on this blog post]] by Joe Rabinoff.
+Emacs - unsurprisingly - has a built in diffing tool. It's called ediff. Here are some helpful configs for making the experience of using it a little nicer. They were found [[https://pragmaticemacs.wordpress.com/2015/06/13/visualise-and-copy-differences-between-files/][on this blog post]] by Joe Rabinoff.
 
 Full disclaimer, I set this up, but I never use ediff because [[https://kaleidoscope.app/][Kaleidoscope]] is a brilliant app with devs who just keep making it better.
 
@@ -2554,14 +2556,17 @@ Full disclaimer, I set this up, but I never use ediff because [[https://kaleidos
 
 ** LLMs
 *** Agent-shell
+At the time of writing I'm just getting started with this thing and don't have any thoughts or advice for future you or me.
+
 #+begin_src elisp :tangle config.el
 ; agent-shell configuration for Claude
 (require 'acp)
 (require 'agent-shell)
 (setq agent-shell-anthropic-authentication
-      (agent-shell-anthropic-make-authentication :login t))
-; make claude our default
-(setq agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config))
+        (agent-shell-anthropic-make-authentication :login t)
+      ; make claude our default. this doesn't work. I don't know why.
+      agent-shell-preferred-agent-config
+        (agent-shell-anthropic-make-claude-code-config))
 #+end_src
 * Misc / Troubleshooting
 After a recent upgrade, I started having trouble with the system pausing as I was typing. Very annoying. This is what [[https://github.com/lastquestion/explain-pause-mode][explain-pause-mode]] was designed to help with. It's loaded via =package.el=
