@@ -702,7 +702,7 @@ NOTE: The ~set-face-attribute~ method of setting faces works, but for reasons I 
   )
 #+end_src
 *** Easier Emoji
-Custom emoji picker using ~custom/masu-emojis.el~ which includes 1800+ unicode emojis plus custom additions/aliases. Edit that file to add more.
+Custom emoji picker using ~custom/masu-emojis.el~ which includes 1800+ unicode emojis plus custom additions/aliases. Edit that file to add more. Yes, I know =emacs-emojify= exists. Yes, I tried it. I abandoned it for /many/ reasons and put together a custom package that is much more straightforward, works the way I want, and is easy to add more emoji and / or aliases to.
 
 | Key     | Function                 | Description                                       |
 |---------+--------------------------+---------------------------------------------------|
