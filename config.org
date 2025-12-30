@@ -1329,7 +1329,8 @@ Note that the [[https://github.com/rougier/svg-tag-mode][svg-tag-mode]] has nota
             (face-spec-reset-face face)
             (set-face-foreground face (face-attribute 'default :background)))
 
-    (set-face-background 'fringe (face-attribute 'default :background))
+    ; fringe stuff is incompatible with org-indent which I like very much
+    ;; (set-face-background 'fringe (face-attribute 'default :background))
 
     (setq
     ;; Edit settings

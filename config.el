@@ -571,7 +571,8 @@ See options: `dired-hide-details-hide-symlink-targets',
             (face-spec-reset-face face)
             (set-face-foreground face (face-attribute 'default :background)))
 
-    (set-face-background 'fringe (face-attribute 'default :background))
+    ; fringe stuff is incompatible with org-indent which I like very much
+    ;; (set-face-background 'fringe (face-attribute 'default :background))
 
     (setq
     ;; Edit settings
