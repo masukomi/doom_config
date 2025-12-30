@@ -470,7 +470,7 @@ See options: `dired-hide-details-hide-symlink-targets',
 (after! evil
    (evil-select-search-module 'evil-search-module 'isearch))
 
-(defun my/org-tab-conditional ()
+(defun masu/org-tab-conditional ()
   (interactive)
   (if (yas-active-snippets)
       (yas-next-field-or-maybe-expand)
@@ -478,7 +478,7 @@ See options: `dired-hide-details-hide-symlink-targets',
 
 (map! :after evil-org
       :map evil-org-mode-map
-      :i "<tab>" #'my/org-tab-conditional)
+      :i "<tab>" #'masu/org-tab-conditional)
 
   (setq org-export-with-sub-superscripts nil)
 
@@ -531,6 +531,10 @@ See options: `dired-hide-details-hide-symlink-targets',
 
 (with-eval-after-load 'org
     (setq
+        ;; Disable hiding #+ prefixes on blocks and keywords
+        ;; (they get hidden inside src blocks which is confusing)
+        org-modern-block-name t
+        org-modern-keyword nil
 
         org-modern-todo-faces '(
         ("TODO"        :foreground "#dfe1e1"
@@ -577,6 +581,7 @@ See options: `dired-hide-details-hide-symlink-targets',
     org-special-ctrl-a/e t
     org-insert-heading-respect-content t
 
+
     ; bullets
     ; can be nil, 'fold, or 'replace
     ; nil is default, 'fold looks like daughtering triangles
@@ -588,7 +593,7 @@ See options: `dired-hide-details-hide-symlink-targets',
     ; define the characters used before different heading levels in org mode
     org-modern-replace-stars "◉○◈◇✩"
     ;; Org styling, hide markup etc.
-    org-hide-emphasis-markers t
+    ;org-hide-emphasis-markers t
     ;org-pretty-entities t
     org-agenda-tags-column 0
     ;org-ellipsis "⤵"

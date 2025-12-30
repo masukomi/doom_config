@@ -1192,7 +1192,7 @@ I've been using the 2nd. I don't recall why.
 Henrik [[https://github.com/doomemacs/doomemacs/pull/7739][thought it was fixedâ€¦]]
 
 #+begin_src elisp :tangle config.el
-(defun my/org-tab-conditional ()
+(defun masu/org-tab-conditional ()
   (interactive)
   (if (yas-active-snippets)
       (yas-next-field-or-maybe-expand)
@@ -1200,7 +1200,7 @@ Henrik [[https://github.com/doomemacs/doomemacs/pull/7739][thought it was fixedâ
 
 (map! :after evil-org
       :map evil-org-mode-map
-      :i "<tab>" #'my/org-tab-conditional)
+      :i "<tab>" #'masu/org-tab-conditional)
 #+end_src
 
 
@@ -1289,6 +1289,10 @@ Note that the [[https://github.com/rougier/svg-tag-mode][svg-tag-mode]] has nota
 
 (with-eval-after-load 'org
     (setq
+        ;; Disable hiding #+ prefixes on blocks and keywords
+        ;; (they get hidden inside src blocks which is confusing)
+        org-modern-block-name t
+        org-modern-keyword nil
 
         org-modern-todo-faces '(
         ("TODO"        :foreground "#dfe1e1"
@@ -1334,6 +1338,7 @@ Note that the [[https://github.com/rougier/svg-tag-mode][svg-tag-mode]] has nota
     org-catch-invisible-edits 'show-and-error
     org-special-ctrl-a/e t
     org-insert-heading-respect-content t
+
 
     ; bullets
     ; can be nil, 'fold, or 'replace
