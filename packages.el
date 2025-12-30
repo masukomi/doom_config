@@ -76,7 +76,7 @@
 ; edit that face to change what it looks like.
 
 (package! darktooth-theme)
-;; (package! emojify)
+(package! emojify)
 ;; (package! minimap)
 (package! nerd-icons)
 (package! nlinum-relative)

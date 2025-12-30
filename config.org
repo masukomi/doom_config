@@ -700,6 +700,42 @@ NOTE: The ~set-face-attribute~ method of setting faces works, but for reasons I 
   (nerd-icons-font-family "JetBrains Mono Medium")
   )
 #+end_src
+*** Easier Emoji
+The [[https://github.com/iqbalansari/emacs-emojify][emacs-emojify]] offers support for Slack / GitHub style emojis, as well as easy insertion of other emojis.
+
+By default it handles ascii, unicode, and "github" style emojis. This is controlled from the ~emojify-emoji-styles~ & ~emojify-display-style~ variables. Unfortunately, I was hoping this worked like slack, where you type =:wink:= and it replaces that with 😉. What this does is look for special character strings like =:wink:= and makes it /appear/ as if they've been replaced with the emoji. That wasn't what I wanted and was interfered with by some of my other org-mode visual tweaks. But, This package still makes it easier to insert emoji than the ~insert-character~ function. ~C-c e~ wasn't being used so I mapped all the useful =emacs-emojify= functions under there.
+
+Note it can do custom emoji and image emoji, but I don't want to get in the habit of creating files with emoji that only work for me.
+
+
+| Key     | Function                        | Description                     |
+|---------|---------------------------------|---------------------------------|
+| C-c e i | emojify-insert-emoji            | Search & insert actual emoji    |
+| C-c e d | emojify-describe-emoji-at-point | Describe emoji under cursor     |
+| C-c e l | emojify-list-emojis             | Browse all available emojis     |
+| C-c e a | emojify-apropos-emoji           | Search emojis by pattern        |
+| C-c e m | emojify-mode                    | Toggle display mode (if wanted) |
+
+Now =C-c e i= will let you search for "wink" and insert the actual 😉 character into your buffer.
+
+First you need the emojify package loaded. See ~packages.el~
+
+#+BEGIN_SRC elisp :tangle config.el
+(use-package emojify
+  :config
+  (when (member "Apple Color Emoji" (font-family-list))
+    (set-fontset-font
+     t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend))
+  ;; Define C-c e as emojify prefix keymap
+  (define-prefix-command 'emojify-command-map)
+  (global-set-key (kbd "C-c e") 'emojify-command-map)
+  (define-key emojify-command-map (kbd "i") #'emojify-insert-emoji)
+  (define-key emojify-command-map (kbd "d") #'emojify-describe-emoji-at-point)
+  (define-key emojify-command-map (kbd "l") #'emojify-list-emojis)
+  (define-key emojify-command-map (kbd "a") #'emojify-apropos-emoji)
+  (define-key emojify-command-map (kbd "m") #'emojify-mode))
+#+END_SRC
+
 *** Tabs!
 [[https://github.com/ema2159/centaur-tabs#readme][Centaur Tabs]]
 
@@ -2713,51 +2749,6 @@ For example, if you use [[https://github.com/zenspider/enhanced-ruby-mode][enhan
 #+begin_src elisp
 (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
 #+end_src
-
-** Slack / GitHub Style emoji
-NOTE: currently disabled because i haven't managed to get it working, but want to.
-
-
-The [[https://github.com/iqbalansari/emacs-emojify][emacs-emojify]] offers support for Slack / GitHub style emojis, as well as easy insertion of other emojis.
-
-By default it handles ascii, unicode, and "github" style emojis. This is controlled from the ~emojify-emoji-styles~ & ~emojify-display-style~ variables. I only want to display unicode emojis, but I want to be able to type ~:smile:~ and get the smile emoji without having to open a picker.
-
-
-First you need the emojify package loaded. See ~packages.el~
-Found in [[https://github.com/bgutter/dotemacs/blob/master/my-init.org][bgutter's config file]]
-
-Then you turn it on everywhere, except where you don't want it.
-⚠️ NOT tangled
-#+BEGIN_SRC elisp
-(use-package emojify
-  :config
-  (when (member "Segoe UI Emoji" (font-family-list))
-    (set-fontset-font
-     t 'symbol (font-spec :family "Segoe UI Emoji") nil 'prepend))
-  (setq emojify-display-style 'unicode)
-  (setq emojify-emoji-styles '(unicode github))
-  (global-set-key (kbd "C-c .") #'emojify-insert-emoji))
-
-(add-hook 'after-init-hook #'global-emojify-mode)
-(defun my:emojify-inhibit-fix-org-drawers (text beg end)
-  "Since org-mode now uses lower-case :begin:, :end:, etc tags, some of them are
-now being rendered as Emojis. Filter this case out."
-  (and (equal major-mode 'org-mode) (member (downcase text) '(":begin:" ":end:"))))
-
-; made by me
-(defun my:emojify-inhibit-no-inline-escape-emoji (text beg end)
-  "disable creation of emojis starting with = or ~ in org-mode"
-  (and (equal major-mode 'org-mode)
-       (or))
-  (string-prefix-p "=" (downcase te))
-  (string-prefix-p "~" (downcase te)))
-
-
-(with-eval-after-load "emojify"
-	(add-to-list 'emojify-inhibit-functions 'my:emojify-inhibit-fix-org-drawers)
-	(add-to-list 'emojify-inhibit-functions 'my:emojify-inhibit-no-inline-escape-emoji)
-)
-#+END_SRC
 
 ** ob-raku
 ⚠️ NOT tangled

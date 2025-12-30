@@ -226,6 +226,20 @@ current buffer's, reload dir-locals."
   (nerd-icons-font-family "JetBrains Mono Medium")
   )
 
+(use-package emojify
+  :config
+  (when (member "Apple Color Emoji" (font-family-list))
+    (set-fontset-font
+     t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend))
+  ;; Define C-c e as emojify prefix keymap
+  (define-prefix-command 'emojify-command-map)
+  (global-set-key (kbd "C-c e") 'emojify-command-map)
+  (define-key emojify-command-map (kbd "i") #'emojify-insert-emoji)
+  (define-key emojify-command-map (kbd "d") #'emojify-describe-emoji-at-point)
+  (define-key emojify-command-map (kbd "l") #'emojify-list-emojis)
+  (define-key emojify-command-map (kbd "a") #'emojify-apropos-emoji)
+  (define-key emojify-command-map (kbd "m") #'emojify-mode))
+
 (use-package centaur-tabs
   :demand
   :init
