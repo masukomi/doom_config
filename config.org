@@ -687,7 +687,13 @@ NOTE: The ~set-face-attribute~ method of setting faces works, but for reasons I 
                     :box nil    ; could do something like '(:line-width 8 :color "#565063")
                     :overline nil
                     :underline nil)))))
+
+; enable word-count in some modes
+(setq doom-modeline-enable-word-count t)
+(setq doom-modeline-continuous-word-count-modes '(markdown-mode gfm-mode org-mode))
 #+end_src
+
+See Also [[*word counts][word counts]] under the org-mode section.
 *** Icons
 [[https://github.com/rainstormstudio/nerd-icons.el][nerd-icons.el]]
 
@@ -1382,6 +1388,7 @@ EXAMPLES (These will only display correctly in emacs)
 - Day Range <2025-09-28 Sun>--<2025-09-30 Tue>
 - Time Range <2025-09-28 Sun 10:11-11:12>
 - Time Stamp <2025-09-28 Sun 10:11>
+
 *** Drawer Styling
 I haven't found a way to customize the face of a drawer's content, but you can tweak the face of lines that define its boundaries.
 
@@ -1586,6 +1593,8 @@ Enable flyspell in text modes
 #+END_SRC
 
 ** word counts
+⚠️ There's a better way to do this if you're using doom-modeline (see [[*Modeline tweaks][Modeline tweaks]]  above).
+
 To see the number of words per org-mode tree section (part of your outline) run ~org-wc-display~
 
 To have a running count use [[https://github.com/bnbeckwith/wc-mode][wc-mode]] (Word Count Mode). wc-mode can insert word counts in your modeline, which is nice when you're writing long-form text. Normally you just invoke ~wc~ (an alias for ~wc-count~ ), but you can also have it just running on a loop in the background. The linked web page has a readme with formatting instructions.
@@ -1602,7 +1611,8 @@ However, I wanted something simpler.
 
 Because Doom emacs comes with a custom mode-line we need to insert this into that otherwise we'll never see it except in the default "vanilla" modeline when we manually invoke ~wc~. Also ~wc~ invocation uses a different formatting.
 
-#+begin_src elisp :tangle config.el
+⚠️ not tangled
+#+begin_src elisp
 ; add wc-mode to doom modeline
 (setq wc-modeline-format "words: %tw") ; simpler output than the default
 (add-to-list 'global-mode-string '("" wc-buffer-stats))

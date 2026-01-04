@@ -217,6 +217,10 @@ current buffer's, reload dir-locals."
                     :overline nil
                     :underline nil)))))
 
+; enable word-count in some modes
+(setq doom-modeline-enable-word-count t)
+(setq doom-modeline-continuous-word-count-modes '(markdown-mode gfm-mode org-mode))
+
 (use-package nerd-icons
   :custom
   ;; The Nerd Font you want to use in GUI
@@ -676,13 +680,6 @@ See options: `dired-hide-details-hide-symlink-targets',
 
 (dolist (hook '(text-mode-hook))
   (add-hook hook (lambda () (flyspell-mode 1))))
-
-; add wc-mode to doom modeline
-(setq wc-modeline-format "words: %tw") ; simpler output than the default
-(add-to-list 'global-mode-string '("" wc-buffer-stats))
-
-; enable it when opening an org-mode file
-(add-hook 'org-mode-hook 'wc-mode)
 
 (global-set-key (kbd "C-c a") 'org-agenda)
 
