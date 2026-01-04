@@ -220,6 +220,14 @@ current buffer's, reload dir-locals."
 ; enable word-count in some modes
 (setq doom-modeline-enable-word-count t)
 (setq doom-modeline-continuous-word-count-modes '(markdown-mode gfm-mode org-mode))
+; aligning right-fringe to address cutoff issues
+(setq mode-line-right-align-edge 'right-fringe)
+(after! doom-modeline
+  (doom-modeline-def-modeline 'main
+    ; left side elements
+    '(bar window-state workspace-name window-number modals matches follow buffer-info remote-host buffer-position parrot selection-info)
+    ; right side elements
+    '(compilation objed-state misc-info project-name persp-name battery grip irc mu4e gnus github debug repl lsp minor-modes input-method indent-info buffer-encoding word-count major-mode process vcs check time)))
 
 (use-package nerd-icons
   :custom
@@ -483,6 +491,12 @@ See options: `dired-hide-details-hide-symlink-targets',
 (map! :after evil-org
       :map evil-org-mode-map
       :i "<tab>" #'masu/org-tab-conditional)
+
+; make eldoc shut up about errors in org-mode
+(after! org
+    (advice-add 'org-eldoc-documentation-function :around
+                (lambda (orig-fn &rest args)
+                    (ignore-errors (apply orig-fn args)))))
 
   (setq org-export-with-sub-superscripts nil)
 

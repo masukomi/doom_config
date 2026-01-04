@@ -691,9 +691,36 @@ NOTE: The ~set-face-attribute~ method of setting faces works, but for reasons I 
 ; enable word-count in some modes
 (setq doom-modeline-enable-word-count t)
 (setq doom-modeline-continuous-word-count-modes '(markdown-mode gfm-mode org-mode))
+; aligning right-fringe to address cutoff issues
+(setq mode-line-right-align-edge 'right-fringe)
+(after! doom-modeline
+  (doom-modeline-def-modeline 'main
+    ; left side elements
+    '(bar window-state workspace-name window-number modals matches follow buffer-info remote-host buffer-position parrot selection-info)
+    ; right side elements
+    '(compilation objed-state misc-info project-name persp-name battery grip irc mu4e gnus github debug repl lsp minor-modes input-method indent-info buffer-encoding word-count major-mode process vcs check time)))
 #+end_src
 
+Note: I've removed eldoc from the first segment, and added word-mode. Otherwise that's the stock config.
+
+In order to see which segments are currently being displayed, and on which side you can run
+
+#+begin_src elisp
+(documentation 'doom-modeline-format--main)
+#+end_src
+
+This returns the docstring which contains the exact segment list, formatted like:
+Modeline:
+#+begin_src elisp
+(lhs-segments … )
+(rhs-segments … )
+#+end_src
+
+Or use describe-function: =M-x describe-function RET doom-modeline-format--main=
+
+
 See Also [[*word counts][word counts]] under the org-mode section.
+
 *** Icons
 [[https://github.com/rainstormstudio/nerd-icons.el][nerd-icons.el]]
 
@@ -1209,6 +1236,15 @@ Henrik [[https://github.com/doomemacs/doomemacs/pull/7739][thought it was fixed�
       :i "<tab>" #'masu/org-tab-conditional)
 #+end_src
 
+eldoc throws a lot of errors when it can't figure out the origin language of something i happen to be hovering over. This is really annoying, and happens a lot when looking at org-mode docs with source code in them. This should, hopefully, make it stop complaining when it errors.
+
+#+begin_src elisp :tangle config.el
+; make eldoc shut up about errors in org-mode
+(after! org
+    (advice-add 'org-eldoc-documentation-function :around
+                (lambda (orig-fn &rest args)
+                    (ignore-errors (apply orig-fn args)))))
+#+end_src
 
 ** Beautification
 *** Configuring misc things via global org variables
