@@ -17,6 +17,7 @@
 (load "eruby-mode")
 (load "maybe-insert-org-entity")
 (load "fediverse-links")
+(load "peek-as-you-go")
 
 ; automatically sync buffer with changes in the filesystem
 (global-auto-revert-mode t)
