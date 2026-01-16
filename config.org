@@ -137,11 +137,25 @@ Everyone else uses ~⌘+x~ or ~^x~. I get that Emacs' way predated fancy GUI OSs
 
 Because someone's going to read the above and think I'm an idiot for not turning on CUA:
 
-When Common User Access (CUA) mode is enabled, the keys C-x, C-c, C-v, and C-z
-invoke commands that cut (kill), copy, paste (yank), and undo respectively. Which is to say, it makes it work like every other app on your computer.
+When Common User Access (CUA) mode is enabled, the keys =C-x=, =C-c=, =C-v=, and =C-z= invoke commands that cut (kill), copy, paste (yank), and undo respectively. Which is to say, it makes it work like every other app on your computer.
 
-Unfortunately, this completely borks new list item functionality in org-mode
-and it overrides the C-V functionality in evil (visual selection block mode). So, we can't actually run ~(cua-mode t)~
+Unfortunately, this completely borks new list item functionality in org-mode and it overrides the C-V functionality in evil (visual selection block mode). So, we can't actually run ~(cua-mode t)~
+** Compensate for insane undo functionality
+Linear undo is for the weak! Or, something. I dunno. Emac's undo functionality is too hard for me to wrap my head around.
+
+So, when future me inevitably does an undo + redo and finds their 💩 missing, they should run the following
+
+⚠️ NOT TANGLED
+#+begin_src elisp
+(global-undo-tree-mode)
+(undo-tree-visualize)
+#+end_src
+
+Use arrow keys to navigate what it shows you, then stop and save the buffer you're mucking with when you find the correct node.
+
+Then, when future me is done, they should disable =global-undo-tree-mode= because it fucks with =C-x=.
+
+Ugh. Why can't emacs just have a mode where undo works like everything else? People have been asking for this for decades. Literally.
 
 ** Why can't you window?
 For some reason GUI emacs on macOS seems incapable of remembering its window size and it defaults to something ridiculously small.

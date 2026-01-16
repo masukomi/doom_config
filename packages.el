@@ -64,6 +64,8 @@
 ; use sane regexp (PCRE) in emacs
 (package! pcre2el)
 
+(package! undo-tree)
+
 ; UI STUFF
 
 ;; (package! centaur-tabs) ; included via "tabs" in init.el
