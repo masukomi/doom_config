@@ -166,6 +166,11 @@ current buffer's, reload dir-locals."
   '(cursor :foreground "#FFFFFF")
         )
 
+(use-package! winpulse
+  :config
+  (setq winpulse-duration 1.0)
+  (winpulse-mode +1))
+
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 ;; for both, you gotta get funky.

@@ -68,7 +68,11 @@
 
 ; UI STUFF
 
-;; (package! centaur-tabs) ; included via "tabs" in init.el
+;; normally centaur-tabs is included via "tabs" in init.el
+;; However, there's a bug in it that I have fixed locally.
+(package! centaur-tabs
+  :recipe (:local-repo "~/workspace/centaur-tabs"))
+
 ; extends Vline Mode https://www.emacswiki.org/emacs/VlineMode
 (package! col-highlight)
 ;; (column-highlight-mode 0) ; 1 = highlighting, 0 = off
@@ -76,6 +80,14 @@
 ; list-faces-display
 ; shows you a col-highlight face that controls the color of the highlight column
 ; edit that face to change what it looks like.
+
+(package! winpulse
+  :recipe (:host github :repo "xenodium/winpulse"))
+;; (use-package winpulse
+;;   :vc (:url "https://github.com/xenodium/winpulse"
+;;        :rev :newest)
+;;   :config
+;;   (winpulse-mode +1))
 
 (package! darktooth-theme)
 ;; (package! minimap)

@@ -566,6 +566,26 @@ Without the following I end up with a black cursor with almost black text inside
 
 Henrik's advice is to use ~custom-set-faces!~ in most situations, but when you are doing something like configuring a thing that isn't static to begin with (different heading colors of different headings in an org-mode file for example) you should use ~set-face-attribute~. He provides an example [[https://discourse.doomemacs.org/t/how-to-best-change-face-settings-custom-set-faces-or-set-face-attribute/2721][in this thread]].
 
+*** And what buffer that cursor is in…
+[[https://github.com/xenodium/winpulse][winpulse-mode]] will flash a buffer whenever it receives focus. This is installed via =packages.el= but we still need to run the following:
+
+#+begin_src elisp :tangle config.el
+(use-package! winpulse
+  :config
+  (setq winpulse-duration 1.0)
+  (winpulse-mode +1))
+#+end_src
+
+**** Customizations
+
+| Custom variable                   | Description                                                    |
+|-----------------------------------+----------------------------------------------------------------|
+| winpulse-brightness               | How much to shift the color (0-255 range) at peak flash.       |
+| winpulse-duration                 | Total animation duration in seconds.                           |
+| winpulse-excluded-buffer-patterns | List of regexps matched against buffer names to skip flashing. |
+| winpulse-ignore-minibuffer-focus  | When non-nil, ignore minibuffer focus changes.                 |
+| winpulse-step-interval            | Seconds between animation frames.                              |
+
 *** Absolute & Relative Line Numbers
 
 Line numbers are important. For us Vim expats, relative line numbers save a lot of counting, but we still need to know which line is the the one the error message complained about.
