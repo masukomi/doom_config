@@ -323,6 +323,9 @@ Otherwise, kill the workspace."
 
 (setq display-buffer-base-action '(nil))
 
+(setq evil-split-window-below t
+      evil-vsplit-window-right t)
+
 ; from the bottom buffer swap its contents with the top
 (global-set-key (kbd "<C-S-up>")     'buf-move-up)
 ; and vice-versa
