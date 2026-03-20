@@ -191,6 +191,13 @@
 ; -- SQL
 (package! sql-indent)
 
+; -- Wisp
+; whitespace indented scheme
+; https://www.draketo.de/software/wisp
+; ships with Guile
+;
+; (package! wisp-mode)
+
 ; -- Yaml
 (package! yaml-mode)
 
