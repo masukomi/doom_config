@@ -10,7 +10,10 @@
   '(
     ("🏳️‍⚧️ transgender flag / trans" . "🏳️‍⚧️")
     ("🏳️‍🌈 pride flag / rainbow / gay" . "🏳️‍🌈")
+    ("🐄💩 bullshit / bull-shit" . "🐄💩")
     ("😠 mad / angry / pissed" . "😠")
+
+    ;; alphabetical ones
     ("🎟 admission tickets" . "🎟")
     ("🚡 aerial tramway" . "🚡")
     ("🇦🇫 afghanistan" . "🇦🇫")
