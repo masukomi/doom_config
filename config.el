@@ -18,6 +18,9 @@
 (load "maybe-insert-org-entity")
 (load "fediverse-links")
 (load "peek-as-you-go")
+;; Org-babel files not available in melpa
+(add-to-list 'load-path "~/.config/doom/org-babel")
+; opitonally loaded later. See org-babel section
 
 ; automatically sync buffer with changes in the filesystem
 (global-auto-revert-mode t)
@@ -513,7 +516,7 @@ See options: `dired-hide-details-hide-symlink-targets',
   (with-eval-after-load 'org
     (setq
         org-todo-keywords
-        '((sequence "TODO(t)" "INPROGRESS(s)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")
+        '((sequence "TODO(t)" "STARTED(s)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")
         (sequence "[ ](T)" "|" "[X](D)")
         (sequence "|" "OKAY(o)" "YES(y)" "NO(n)"))
 
@@ -582,6 +585,18 @@ See options: `dired-hide-details-hide-symlink-targets',
         ("CANCELLED"     :foreground "#dfe1e1"
                          :background "#ff6480" :weight normal
                          :underline nil)
+        ; decision states
+        ; these reuse the same colors as above for a consistent look
+        ("YES"           :foreground "#dfe1e1"
+                         :background "#50a14f"
+                         :weight normal :underline nil)
+        ("NO"            :foreground "#dfe1e1"
+                         :background "#ff6480" :weight normal
+                         :underline nil)
+        ("OKAY"          :foreground "#dfe1e1"
+                         :background "#7f8080"
+                         :weight normal
+                         :underline nil)
         )
     )
     ;; Add frame borders and window dividers
@@ -602,35 +617,35 @@ See options: `dired-hide-details-hide-symlink-targets',
     ;; (set-face-background 'fringe (face-attribute 'default :background))
 
     (setq
-    ;; Edit settings
-    org-auto-align-tags nil
-    org-tags-column 0
-    org-catch-invisible-edits 'show-and-error
-    org-special-ctrl-a/e t
-    org-insert-heading-respect-content t
+        ;; Edit settings
+        org-auto-align-tags nil
+        org-tags-column 0
+        org-catch-invisible-edits 'show-and-error
+        org-special-ctrl-a/e t
+        org-insert-heading-respect-content t
 
 
-    ; bullets
-    ; can be nil, 'fold, or 'replace
-    ; nil is default, 'fold looks like daughtering triangles
-    org-modern-star 'replace
-    ;; org-modern-fold-stars
-    ; define the characters before headings to denote folded or not
-    ; note that the 3rd pair tends to not exist in many fonts
-    ;; '(("▶" . "▼") ("▷" . "▽") ("⯈" . "⯆") ("▹" . "▿") ("▸" . "▾"))
-    ; define the characters used before different heading levels in org mode
-    org-modern-replace-stars "◉○◈◇✩"
-    ;; Org styling, hide markup etc.
-    ;org-hide-emphasis-markers t
-    ;org-pretty-entities t
-    org-agenda-tags-column 0
-    ;org-ellipsis "⤵"
+        ; bullets
+        ; can be nil, 'fold, or 'replace
+        ; nil is default, 'fold looks like daughtering triangles
+        org-modern-star 'replace
+        ;; org-modern-fold-stars
+        ; define the characters before headings to denote folded or not
+        ; note that the 3rd pair tends to not exist in many fonts
+        ;; '(("▶" . "▼") ("▷" . "▽") ("⯈" . "⯆") ("▹" . "▿") ("▸" . "▾"))
+        ; define the characters used before different heading levels in org mode
+        org-modern-replace-stars "◉○◈◇✩"
+        ;; Org styling, hide markup etc.
+        ;org-hide-emphasis-markers t
+        ;org-pretty-entities t
+        org-agenda-tags-column 0
+        ;org-ellipsis "⤵"
 
-    ;; Agenda styling
-    org-agenda-tags-column 0
-    org-agenda-block-separator ?─
+        ;; Agenda styling
+        org-agenda-tags-column 0
+        org-agenda-block-separator ?─
 
-    )
+        )
 )
 
 ; make your drawer indicator hot pink
@@ -683,23 +698,18 @@ See options: `dired-hide-details-hide-symlink-targets',
       ;(define-key markdown-mode-map (kbd "\C-c\C-o") 'toc-org-markdown-follow-thing-at-point)
   (warn "toc-org not found"))
 
-; teach org-babel about Raku
-; ⚠ note that this path is to my local clone of the ob-raku repo.
-(let ((ob-raku-el "~/workspace/reference/emacs/ob-raku/ob-raku.el"))
- (when (file-exists-p ob-raku-el)
-    (load-file ob-raku-el)
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((shell . t)
-       (raku . t))
-     )
-   )
-)
+; teach org-babel about Raku, and Wisp
+(load "ob-raku")
+;; (load "ob-wisp")
 
 (org-babel-do-load-languages
- 'org-babel-load-languages
- '((shell . t))
- )
+    'org-babel-load-languages
+    '(
+      (shell . t)
+      (raku . t)
+      ;; (wisp . t)
+    )
+)
 
 (dolist (hook '(text-mode-hook))
   (add-hook hook (lambda () (flyspell-mode 1))))
@@ -1001,6 +1011,10 @@ See options: `dired-hide-details-hide-symlink-targets',
 ; END DENOTE STUFF
 
 ;;------------- ELIXIR
+(setq treesit-language-source-alist
+  '((heex "https://github.com/phoenixframework/tree-sitter-heex")
+    (elixir "https://github.com/elixir-lang/tree-sitter-elixir")))
+
 ; highlight inline LiveView templates
 (use-package polymode
   :mode ("\.ex$" . poly-elixir-web-mode)

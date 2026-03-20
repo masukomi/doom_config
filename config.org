@@ -67,6 +67,9 @@ At the time of writing this consists of
 (load "maybe-insert-org-entity")
 (load "fediverse-links")
 (load "peek-as-you-go")
+;; Org-babel files not available in melpa
+(add-to-list 'load-path "~/.config/doom/org-babel")
+; opitonally loaded later. See org-babel section
 #+end_src
 
 ** auto-reloading files changed on disk
@@ -1307,7 +1310,7 @@ Then we'll define our "todo keywords" and tell org-mode what colors we want them
   (with-eval-after-load 'org
     (setq
         org-todo-keywords
-        '((sequence "TODO(t)" "INPROGRESS(s)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")
+        '((sequence "TODO(t)" "STARTED(s)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")
         (sequence "[ ](T)" "|" "[X](D)")
         (sequence "|" "OKAY(o)" "YES(y)" "NO(n)"))
 
@@ -1346,6 +1349,7 @@ Org acutally uses this variable only under rare circumstances, like when filing 
 #+end_src
 
 Next we'll configure all the default files. As noted below, I don't actually use the notes stuff, because I use [[https://protesilaos.com/emacs/denote][Denote]] (see below). I like having good defaults though.
+
 *** Headings
 #+begin_src elisp :tangle config.el
 ;; Resize Org headings
@@ -1365,6 +1369,7 @@ Next we'll configure all the default files. As noted below, I don't actually use
                                         :weight 'bold
                                         :height (cdr face)))))
 #+end_src
+
 *** Modern Styling
 [[https://github.com/minad/org-modern][org-modern]] replaces a lot of old-school ASCII graphical stuff with clean looking modern alternatives. This is set up in ~packages.el~
 
@@ -1399,6 +1404,18 @@ Note that the [[https://github.com/rougier/svg-tag-mode][svg-tag-mode]] has nota
         ("CANCELLED"     :foreground "#dfe1e1"
                          :background "#ff6480" :weight normal
                          :underline nil)
+        ; decision states
+        ; these reuse the same colors as above for a consistent look
+        ("YES"           :foreground "#dfe1e1"
+                         :background "#50a14f"
+                         :weight normal :underline nil)
+        ("NO"            :foreground "#dfe1e1"
+                         :background "#ff6480" :weight normal
+                         :underline nil)
+        ("OKAY"          :foreground "#dfe1e1"
+                         :background "#7f8080"
+                         :weight normal
+                         :underline nil)
         )
     )
     ;; Add frame borders and window dividers
@@ -1419,35 +1436,35 @@ Note that the [[https://github.com/rougier/svg-tag-mode][svg-tag-mode]] has nota
     ;; (set-face-background 'fringe (face-attribute 'default :background))
 
     (setq
-    ;; Edit settings
-    org-auto-align-tags nil
-    org-tags-column 0
-    org-catch-invisible-edits 'show-and-error
-    org-special-ctrl-a/e t
-    org-insert-heading-respect-content t
+        ;; Edit settings
+        org-auto-align-tags nil
+        org-tags-column 0
+        org-catch-invisible-edits 'show-and-error
+        org-special-ctrl-a/e t
+        org-insert-heading-respect-content t
 
 
-    ; bullets
-    ; can be nil, 'fold, or 'replace
-    ; nil is default, 'fold looks like daughtering triangles
-    org-modern-star 'replace
-    ;; org-modern-fold-stars
-    ; define the characters before headings to denote folded or not
-    ; note that the 3rd pair tends to not exist in many fonts
-    ;; '(("▶" . "▼") ("▷" . "▽") ("⯈" . "⯆") ("▹" . "▿") ("▸" . "▾"))
-    ; define the characters used before different heading levels in org mode
-    org-modern-replace-stars "◉○◈◇✩"
-    ;; Org styling, hide markup etc.
-    ;org-hide-emphasis-markers t
-    ;org-pretty-entities t
-    org-agenda-tags-column 0
-    ;org-ellipsis "⤵"
+        ; bullets
+        ; can be nil, 'fold, or 'replace
+        ; nil is default, 'fold looks like daughtering triangles
+        org-modern-star 'replace
+        ;; org-modern-fold-stars
+        ; define the characters before headings to denote folded or not
+        ; note that the 3rd pair tends to not exist in many fonts
+        ;; '(("▶" . "▼") ("▷" . "▽") ("⯈" . "⯆") ("▹" . "▿") ("▸" . "▾"))
+        ; define the characters used before different heading levels in org mode
+        org-modern-replace-stars "◉○◈◇✩"
+        ;; Org styling, hide markup etc.
+        ;org-hide-emphasis-markers t
+        ;org-pretty-entities t
+        org-agenda-tags-column 0
+        ;org-ellipsis "⤵"
 
-    ;; Agenda styling
-    org-agenda-tags-column 0
-    org-agenda-block-separator ?─
+        ;; Agenda styling
+        org-agenda-tags-column 0
+        org-agenda-block-separator ?─
 
-    )
+        )
 )
 
 #+end_src
@@ -1456,7 +1473,7 @@ EXAMPLES (These will only display correctly in emacs)
 
 ****  Todo Labels & Tags
 ***** DONE  show examples of =org-modern= :emacs:graphics:
-***** INPROGRESS view this in org-mode
+*****  STARTED view this in org-mode
 ***** WAITING foo ~bar~
 ***** CANCELLED bar
 **** [X] [1/2] checklists
@@ -1620,7 +1637,7 @@ Honestly, life is better when I just write in org-mode and export to markdown.
 ** Org-babel
 Org-babel is a component of org-mode that teaches it how to intellegently handle the content of source code blocks. If your language doesn't have built-in support, there's probably a package for it.
 
-*** ob-raku (raku support)
+*** ob-raku (raku support) & ob-wisp (wisp support)
 The [[https://github.com/masukomi/ob-raku][ob-raku package]] is not currently in melpa. But, it works fine and adds support for [[https://raku.org/][Raku]] to org-mode.
 
 I'm the maintainer of this repo, and - for reasons I've forgotten - I haven't gotten it into melpa yet.
@@ -1628,27 +1645,18 @@ I'm the maintainer of this repo, and - for reasons I've forgotten - I haven't go
 If you want Raku support in your org-mode then just use the following but change the path to your local copy of the repo.
 
 #+begin_src elisp :tangle config.el
-; teach org-babel about Raku
-; ⚠ note that this path is to my local clone of the ob-raku repo.
-(let ((ob-raku-el "~/workspace/reference/emacs/ob-raku/ob-raku.el"))
- (when (file-exists-p ob-raku-el)
-    (load-file ob-raku-el)
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((shell . t)
-       (raku . t))
-     )
-   )
-)
-#+end_src
+; teach org-babel about Raku, and Wisp
+(load "ob-raku")
+;; (load "ob-wisp")
 
-Here's where we tell it to load the shell language? I think? I failed to leave myself a note explaining this.
-
-#+begin_src elisp :tangle config.el
 (org-babel-do-load-languages
- 'org-babel-load-languages
- '((shell . t))
- )
+    'org-babel-load-languages
+    '(
+      (shell . t)
+      (raku . t)
+      ;; (wisp . t)
+    )
+)
 #+end_src
 
 *** Fontified source code blocks
@@ -2461,6 +2469,10 @@ Assumes web-mode and elixir-mode are already set up
 
 #+begin_src elisp :tangle config.el
 ;;------------- ELIXIR
+(setq treesit-language-source-alist
+  '((heex "https://github.com/phoenixframework/tree-sitter-heex")
+    (elixir "https://github.com/elixir-lang/tree-sitter-elixir")))
+
 ; highlight inline LiveView templates
 (use-package polymode
   :mode ("\.ex$" . poly-elixir-web-mode)
