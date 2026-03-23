@@ -55,22 +55,44 @@ a :character-id: property if no matching heading is found."
                           display-name character-id))
           (save-buffer))))))
 
+(defun writing/known-character-ids ()
+  "Return a deduplicated list of character IDs from CHARACTERS and CHARACTERS+ in the buffer."
+  (delete-dups
+   (apply #'append
+          (mapcar (lambda (v) (split-string v nil t))
+                  (org-property-values "CHARACTERS")))))
+
+(defun writing/read-character-input (prompt)
+  "Prompt for a character with PROMPT, offering known IDs for completion.
+Returns (ID . INPUT) where ID is the derived character-id and INPUT is
+what the user typed."
+  (let* ((input (string-trim (completing-read prompt (writing/known-character-ids) nil nil))))
+    (when (string-empty-p input)
+      (user-error "Character name cannot be empty"))
+    (cons (writing/make-character-id input) input)))
+
 (defun writing/add-character ()
   "Add a character to the CHARACTERS property of the current org heading.
 Presents existing character IDs from the buffer for completion. Accepts
 either an existing ID or a new display name (which is converted to an ID).
 Ensures an entry exists in characters.org."
   (interactive)
-  (let* ((known-ids (seq-uniq
-                     (seq-mapcat (lambda (v) (split-string v "\\s-+" t))
-                                 (append (org-property-values "CHARACTERS")
-                                         (org-property-values "CHARACTERS+")))))
-         (input (string-trim (completing-read "Character: " known-ids nil nil))))
-    (when (string-empty-p input)
-      (user-error "Character name cannot be empty"))
-    (let ((id (writing/make-character-id input)))
-      (writing/add-to-property "CHARACTERS" id)
-      (writing/ensure-character-in-registry input id))))
+  (let* ((result (writing/read-character-input "Character: "))
+         (id (car result))
+         (input (cdr result)))
+    (writing/add-to-property "CHARACTERS" id)
+    (writing/ensure-character-in-registry input id)))
+
+(defun writing/set-point-of-view ()
+  "Set the POV property on the current org heading to a single character ID.
+Replaces any existing POV value. Presents existing character IDs for
+completion and ensures the character exists in characters.org."
+  (interactive)
+  (let* ((result (writing/read-character-input "POV character: "))
+         (id (car result))
+         (input (cdr result)))
+    (org-entry-put nil "POV" id)
+    (writing/ensure-character-in-registry input id)))
 
 (defun writing/add-location ()
   "Add a location name to the LOCATIONS property of the current org heading."
@@ -82,6 +104,7 @@ Ensures an entry exists in characters.org."
 
 (defun writing/org-mode-setup ()
   (local-set-key (kbd "C-c w c") #'writing/add-character)
-  (local-set-key (kbd "C-c w l") #'writing/add-location))
+  (local-set-key (kbd "C-c w l") #'writing/add-location)
+  (local-set-key (kbd "C-c w p") #'writing/set-point-of-view))
 
 (add-hook 'org-mode-hook #'writing/org-mode-setup)
