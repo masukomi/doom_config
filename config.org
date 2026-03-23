@@ -1563,6 +1563,22 @@ So, we need to exclude them from export
 
 For the full list of ~org-export-filter-*~ options look at the ~org-export-options-alist~ constant in =lisp/ox.el=
 
+** Writing Hacks
+I want to be able to leave notes to myself within a chapter, but have them be visually distinct from the chapter's content.
+
+Now, any heading with the =:noexport:= tag will get styled in purple
+
+#+begin_src elisp :tangle config.el
+(add-to-list 'load-path "~/.config/doom/custom/writing")
+(load "metadata-styling.el")
+#+end_src
+
+Next, we want to make sure that any NOTES we leave ourselves won't be exported.
+We'll put these in a =NOTES= drawer.
+#+begin_src elisp :tangle config.el
+(setq org-export-with-drawers '(not "NOTES"))
+#+end_src
+
 
 ** Shift-select like all the other editors
 #+begin_src elisp :tangle config.el

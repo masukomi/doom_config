@@ -670,6 +670,11 @@ See options: `dired-hide-details-hide-symlink-targets',
      (add-to-list 'org-export-filter-verse-block-functions
          'masu-exclude-verse-blocks))))
 
+(add-to-list 'load-path "~/.config/doom/custom/writing")
+(load "metadata-styling.el")
+
+(setq org-export-with-drawers '(not "NOTES"))
+
 ; enable shift selection
 (setq org-support-shift-select t)
 
