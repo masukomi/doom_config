@@ -1573,10 +1573,15 @@ Now, any heading with the =:noexport:= tag will get styled in purple
 (load "metadata-styling.el")
 #+end_src
 
-Next, we want to make sure that any NOTES we leave ourselves won't be exported.
-We'll put these in a =NOTES= drawer.
+Next, we want bundle in any custom functionality around our writing process.
+- NOTES drawers won't be exported
+
+The following functions are also added to add metadata to the =PROPERTIES= drawer.
+
+- =C-c w c= → =writing/add-character=
+- =C-c w l= → =writing/add-location=
 #+begin_src elisp :tangle config.el
-(setq org-export-with-drawers '(not "NOTES"))
+(load "writing-functionality.el")
 #+end_src
 
 
