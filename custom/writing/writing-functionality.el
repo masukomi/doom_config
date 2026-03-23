@@ -57,15 +57,20 @@ a :character-id: property if no matching heading is found."
 
 (defun writing/add-character ()
   "Add a character to the CHARACTERS property of the current org heading.
-Prompts for a display name, derives a character-id from it, stores the
-character-id in the property, and ensures an entry exists in characters.org."
+Presents existing character IDs from the buffer for completion. Accepts
+either an existing ID or a new display name (which is converted to an ID).
+Ensures an entry exists in characters.org."
   (interactive)
-  (let ((name (string-trim (read-string "Character name: "))))
-    (when (string-empty-p name)
+  (let* ((known-ids (seq-uniq
+                     (seq-mapcat (lambda (v) (split-string v "\\s-+" t))
+                                 (append (org-property-values "CHARACTERS")
+                                         (org-property-values "CHARACTERS+")))))
+         (input (string-trim (completing-read "Character: " known-ids nil nil))))
+    (when (string-empty-p input)
       (user-error "Character name cannot be empty"))
-    (let ((id (writing/make-character-id name)))
+    (let ((id (writing/make-character-id input)))
       (writing/add-to-property "CHARACTERS" id)
-      (writing/ensure-character-in-registry name id))))
+      (writing/ensure-character-in-registry input id))))
 
 (defun writing/add-location ()
   "Add a location name to the LOCATIONS property of the current org heading."
