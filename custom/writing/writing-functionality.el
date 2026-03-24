@@ -32,6 +32,7 @@ runs of non-word characters with a single hyphen."
   (let* ((s (replace-regexp-in-string "\\`[^[:word:]]+" "" name))
          (s (replace-regexp-in-string "[^[:word:]]+\\'" "" s))
          (s (downcase s))
+         (s (replace-regexp-in-string "['\"]" "-" s))
          (s (replace-regexp-in-string "[^[:word:]]+" "-" s)))
     s))
 
