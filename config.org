@@ -1580,6 +1580,8 @@ The following functions are also added to add metadata to the =PROPERTIES= drawe
 
 - =C-c w c= → =writing/add-character=
 - =C-c w l= → =writing/add-location=
+- =C-c w p= → =writing/set-point-of-view=
+
 #+begin_src elisp :tangle config.el
 (load "writing-functionality.el")
 #+end_src
@@ -1939,9 +1941,10 @@ Default Key Bindings:
 *** Remember fold state
 This script (~custom/org-fold-restore.el~) will remember the fold state /if/ the file has been modified since the last time. If you open it up, muck with fold state, but don't change anything else, it won't remember the fold changes.
 
-⚠️ This is a… problematic tool that needs work. Sometimes the =.fold= file gets borked and you can't open your file until you realize you need to delete the borked =.fold= file. And it folds things weirdly. I'm undecided if I'm going to keep it, hack it, or abandon it. I'm using it for now.
+⚠️ This is a… problematic tool that needs work. Sometimes the =.fold= file gets borked and you can't open your file until you realize you need to delete the borked =.fold= file. And it folds things weirdly. I'm undecided if I'm going to keep it, hack it, or abandon it.
 
-#+begin_src elisp :tangle config.el
+⚠️ NOT tangled
+#+begin_src elisp
 (load "org-fold-restore")
 #+end_src
 

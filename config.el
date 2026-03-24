@@ -804,8 +804,6 @@ See options: `dired-hide-details-hide-symlink-targets',
       (plantuml . t))))
 (setq org-plantuml-jar-path "/opt/homebrew/opt/plantuml/libexec/plantuml.jar")
 
-(load "org-fold-restore")
-
 (defun masu/fold-current ()
   (interactive)
    (progn
