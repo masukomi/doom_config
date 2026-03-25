@@ -99,6 +99,37 @@ Ensures an entry exists in locations.org."
     (writing/add-to-property "LOCATIONS" id)
     (writing/ensure-in-registry input id "locations.org" "location-id" "Locations")))
 
+(defun writing/add-notes ()
+  "Open the NOTES drawer of the current heading, creating it if absent.
+If a PROPERTIES drawer exists, NOTES is inserted after it.
+Always adds a new line inside the drawer and moves point there."
+  (interactive)
+  (org-back-to-heading t)
+  (let* ((bound (save-excursion (outline-next-heading) (point)))
+         (indent (save-excursion
+                   (if (re-search-forward "^\\([ \t]*\\):PROPERTIES:" bound t)
+                       (match-string 1)
+                     ""))))
+    (if (save-excursion
+          (re-search-forward
+           (concat "^" (regexp-quote indent) ":NOTES:") bound t))
+        ;; NOTES drawer exists — add a line before its :END: and go there
+        (progn
+          (re-search-forward
+           (concat "^" (regexp-quote indent) ":NOTES:") bound t)
+          (unless (re-search-forward
+                   (concat "^" (regexp-quote indent) ":END:") bound t)
+            (user-error "Malformed NOTES drawer: missing :END:"))
+          (beginning-of-line)
+          (insert (concat indent "\n"))
+          (forward-line -1))
+      ;; NOTES drawer absent — insert after PROPERTIES :END: or after heading line
+      (re-search-forward
+       (concat "^" (regexp-quote indent) ":END:") bound t)
+      (end-of-line)
+      (insert (format "\n%s:NOTES:\n\n%s:END:" indent indent))
+      (forward-line -1))))
+
 (defun writing/set-point-of-view ()
   "Set the POV property on the current org heading to a single character ID.
 Replaces any existing POV value. Presents existing character IDs for
@@ -193,6 +224,7 @@ Matches from an opening double-quote to either:
     (writing/enable-dialogue-highlighting))
   (local-set-key (kbd "C-c w c") #'writing/add-character)
   (local-set-key (kbd "C-c w l") #'writing/add-location)
+  (local-set-key (kbd "C-c w n") #'writing/add-notes)
   (local-set-key (kbd "C-c w p") #'writing/set-point-of-view)
   (local-set-key (kbd "C-c w s") #'writing/toggle-stylization))
 
