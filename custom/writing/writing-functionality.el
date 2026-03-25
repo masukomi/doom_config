@@ -229,3 +229,11 @@ Matches from an opening double-quote to either:
   (local-set-key (kbd "C-c w s") #'writing/toggle-stylization))
 
 (add-hook 'org-mode-hook #'writing/org-mode-setup)
+
+(which-key-add-major-mode-key-based-replacements 'org-mode
+  "C-c w"   "writing"
+  "C-c w c" "add character"
+  "C-c w l" "add location"
+  "C-c w n" "add notes"
+  "C-c w p" "set point-of-view"
+  "C-c w s" "toggle stylization")
