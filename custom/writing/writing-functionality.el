@@ -180,10 +180,8 @@ Matches from an opening double-quote to either:
 
 (defun writing/stylization-enabled-p ()
   "Return t if #+WRITING_STYLIZATION: t is present in the current buffer."
-  (save-excursion
-    (goto-char (point-min))
-    (and (re-search-forward "^#\\+WRITING_STYLIZATION:[ \t]*\\(.*\\)$" nil t)
-         (string= (string-trim (match-string 1)) "t"))))
+  (string= "t" (cadr (assoc "WRITING_STYLIZATION"
+                             (org-collect-keywords '("WRITING_STYLIZATION"))))))
 
 (defun writing/enable-dialogue-highlighting ()
   "Enable dialogue font-lock highlighting in the current buffer."
@@ -219,14 +217,126 @@ Matches from an opening double-quote to either:
     (writing/enable-dialogue-highlighting)
     (message "Writing stylization enabled")))
 
+; TOC STUFF
+; Usage:
+;   From the story file, invoke C-c w t to generate / refresh the toc file.
+;   The toc file is named like the story file but with _toc before the extension.
+;   e.g. ji_woos_story.org -> ji_woos_story_toc.org
+;
+;   To auto-regenerate the toc on every save, add to the story file:
+;   #+WRITING_GENERATE_TOC_ON_SAVE: t
+;
+;   In the toc file, links look like: [[toc:#custom-id][Heading Text]]
+;   Following a link jumps to that heading in whichever window shows the story file,
+;   opening it in the next window first if needed.
+
+(defun writing/toc-filename (story-path)
+  "Derive the toc file path from STORY-PATH, appending _toc before the extension."
+  (let ((dir  (file-name-directory story-path))
+        (base (file-name-base story-path))
+        (ext  (file-name-extension story-path)))
+    (expand-file-name (format "%s_toc.%s" base ext) dir)))
+
+(defun writing/buffer-title ()
+  "Return the #+TITLE value from the current buffer, or the file base name."
+  (or (cadr (assoc "TITLE" (org-collect-keywords '("TITLE"))))
+      (file-name-base (buffer-file-name))))
+
+(defun writing/make-unique-id (base existing-ids)
+  "Return BASE or BASE-2, BASE-3, ... — whichever is not in EXISTING-IDS."
+  (let ((id base) (n 2))
+    (while (member id existing-ids)
+      (setq id (format "%s-%d" base n))
+      (setq n (1+ n)))
+    id))
+
+(defun writing/ensure-custom-ids-and-collect ()
+  "Ensure every heading in the current buffer has a CUSTOM_ID.
+Adds one derived from the heading text where absent.
+Returns a list of (level heading-text custom-id) for all headings."
+  (let (seen-ids entries)
+    (org-map-entries
+     (lambda ()
+       (let* ((level (org-current-level))
+              (text  (org-get-heading t t t t))
+              (id    (org-entry-get nil "CUSTOM_ID")))
+         (unless id
+           (setq id (writing/make-unique-id
+                     (writing/make-entity-id text) seen-ids))
+           (org-entry-put nil "CUSTOM_ID" id))
+         (push id seen-ids)
+         (push (list level text id) entries)))
+     nil 'file)
+    (nreverse entries)))
+
+(defun writing/generate-toc ()
+  "Generate or refresh the TOC file for the current story file.
+Adds CUSTOM_ID properties to any headings that lack them, then writes
+a toc file (replacing it if it exists) containing a heading-mirrored
+list of toc: links.  The toc filename is the story filename with _toc
+appended before the extension."
+  (interactive)
+  (unless (buffer-file-name)
+    (user-error "Buffer has no file"))
+  (let* ((story-path (buffer-file-name))
+         (toc-path   (writing/toc-filename story-path))
+         (story-name (file-name-nondirectory story-path))
+         (title      (writing/buffer-title))
+         (headings   (writing/ensure-custom-ids-and-collect)))
+    (with-temp-file toc-path
+      (insert (format "#+TITLE: TOC: %s\n" title))
+      (insert (format "#+TOC_TARGET: %s\n\n" story-name))
+      (dolist (h headings)
+        (insert (format "%s [[toc:#%s][%s]]\n"
+                        (make-string (nth 0 h) ?*)
+                        (nth 2 h)
+                        (nth 1 h)))))
+    (message "TOC written to %s" (file-name-nondirectory toc-path))))
+
+(defun writing/maybe-generate-toc ()
+  "Regenerate the TOC on save when #+WRITING_GENERATE_TOC_ON_SAVE: t is set."
+  (when (string= "t" (cadr (assoc "WRITING_GENERATE_TOC_ON_SAVE"
+                                  (org-collect-keywords '("WRITING_GENERATE_TOC_ON_SAVE")))))
+    (writing/generate-toc)))
+
+(defun writing/toc-target-file ()
+  "Return the expanded path of #+TOC_TARGET in the current buffer, or nil."
+  (when-let ((target (cadr (assoc "TOC_TARGET"
+                                  (org-collect-keywords '("TOC_TARGET"))))))
+    (expand-file-name target (file-name-directory (buffer-file-name)))))
+
+(defun writing/toc-follow-link (search-term)
+  "Follow a toc: link by jumping to SEARCH-TERM in the TOC_TARGET file.
+Uses the window already showing the target if one exists; otherwise
+displays it in the next window, splitting if only one window is open."
+  (let ((target-path (writing/toc-target-file)))
+    (unless target-path
+      (user-error "No #+TOC_TARGET: keyword in this buffer"))
+    (let* ((target-buf (or (get-file-buffer target-path)
+                           (find-file-noselect target-path)))
+           (target-win (or (get-buffer-window target-buf)
+                           (if (one-window-p)
+                               (split-window-right)
+                             (next-window)))))
+      (select-window target-win)
+      (switch-to-buffer target-buf)
+      (org-link-search search-term))))
+
+(with-eval-after-load 'org
+  (org-link-set-parameters "toc"
+    :follow    #'writing/toc-follow-link
+    :help-echo "Jump to this heading in the target document"))
+
 (defun writing/org-mode-setup ()
   (when (writing/stylization-enabled-p)
     (writing/enable-dialogue-highlighting))
+  (add-hook 'after-save-hook #'writing/maybe-generate-toc nil t)
   (local-set-key (kbd "C-c w c") #'writing/add-character)
   (local-set-key (kbd "C-c w l") #'writing/add-location)
   (local-set-key (kbd "C-c w n") #'writing/add-notes)
   (local-set-key (kbd "C-c w p") #'writing/set-point-of-view)
-  (local-set-key (kbd "C-c w s") #'writing/toggle-stylization))
+  (local-set-key (kbd "C-c w s") #'writing/toggle-stylization)
+  (local-set-key (kbd "C-c w t") #'writing/generate-toc))
 
 (add-hook 'org-mode-hook #'writing/org-mode-setup)
 
@@ -236,4 +346,5 @@ Matches from an opening double-quote to either:
   "C-c w l" "add location"
   "C-c w n" "add notes"
   "C-c w p" "set point-of-view"
-  "C-c w s" "toggle stylization")
+  "C-c w s" "toggle stylization"
+  "C-c w t" "generate toc")
