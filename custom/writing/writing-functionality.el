@@ -110,6 +110,12 @@ completion and ensures the character exists in characters.org."
     (org-entry-put nil "POV" id)
     (writing/ensure-in-registry input id "characters.org" "character-id" "Characters")))
 
+; STYLIZATION STUFF
+; To enable this functionality add the following to your document
+;
+; #+WRITING_STYLIZATION: t
+;
+; You can toggle this with the following key combo: C-c w s
 (defun writing/dialogue-font-lock-matcher (limit)
   "Font-lock matcher for quoted dialogue.
 Handles multi-paragraph speeches per English grammar convention:
