@@ -310,7 +310,8 @@ appended before the extension."
          (headings   (writing/ensure-custom-ids-and-collect)))
     (with-temp-file toc-path
       (insert (format "#+TITLE: TOC: %s\n" title))
-      (insert (format "#+TOC_TARGET: %s\n\n" story-name))
+      (insert (format "#+TOC_TARGET: %s\n" story-name))
+      (insert "#+STARTUP: fold\n\n")
       (dolist (h headings)
         (insert (format "%s [[toc:#%s][%s]]\n"
                         (make-string (nth 0 h) ?*)
@@ -355,6 +356,9 @@ displays it in the next window, splitting if only one window is open."
     :help-echo "Jump to this heading in the target document"))
 
 (defun writing/org-mode-setup ()
+  (when (string-match-p "_toc\\.org\\'" (or (buffer-file-name) ""))
+    (nlinum-mode -1)
+    (display-line-numbers-mode -1))
   (when (writing/stylization-enabled-p)
     (writing/enable-dialogue-highlighting))
   (add-hook 'after-save-hook #'writing/maybe-generate-toc nil t)
