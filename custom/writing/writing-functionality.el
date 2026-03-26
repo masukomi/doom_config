@@ -250,22 +250,47 @@ Matches from an opening double-quote to either:
       (setq n (1+ n)))
     id))
 
+(defun writing/heading-drawers-text (bound)
+  "Return text of all drawers directly under the current heading, or nil.
+Narrows to the content between the heading line and the first sub-heading
+(or BOUND if none), so the parsed region contains no headlines and
+org-element-map finds all drawers without needing no-recursion logic."
+  (save-restriction
+    (save-excursion
+      (forward-line 1)
+      (let ((content-end (or (save-excursion
+                               (when (re-search-forward "^\\*+ " bound t)
+                                 (match-beginning 0)))
+                             bound)))
+        (narrow-to-region (point) content-end)
+        (let ((parts (org-element-map (org-element-parse-buffer)
+                         '(drawer property-drawer)
+                       (lambda (d)
+                         (buffer-substring-no-properties
+                          (org-element-property :begin d)
+                          (org-element-property :end d))))))
+          (when parts
+            (apply #'concat parts)))))))
+
 (defun writing/ensure-custom-ids-and-collect ()
   "Ensure every heading in the current buffer has a CUSTOM_ID.
 Adds one derived from the heading text where absent.
-Returns a list of (level heading-text custom-id) for all headings."
+Returns a list of (level heading-text custom-id drawers) for all headings,
+where drawers is the text of any non-PROPERTIES drawers, or nil."
   (let (seen-ids entries)
     (org-map-entries
      (lambda ()
-       (let* ((level (org-current-level))
-              (text  (org-get-heading t t t t))
-              (id    (org-entry-get nil "CUSTOM_ID")))
+       (let* ((level   (org-current-level))
+              (text    (org-get-heading t t t t))
+              (id      (org-entry-get nil "CUSTOM_ID"))
+              (bound   (save-excursion (outline-next-heading) (point)))
+              (drawers (writing/heading-drawers-text bound)))
          (unless id
            (setq id (writing/make-unique-id
                      (writing/make-entity-id text) seen-ids))
            (org-entry-put nil "CUSTOM_ID" id))
          (push id seen-ids)
-         (push (list level text id) entries)))
+         (push (list level text id drawers) entries)))
      nil 'file)
     (nreverse entries)))
 
@@ -290,7 +315,9 @@ appended before the extension."
         (insert (format "%s [[toc:#%s][%s]]\n"
                         (make-string (nth 0 h) ?*)
                         (nth 2 h)
-                        (nth 1 h)))))
+                        (nth 1 h)))
+        (when (nth 3 h)
+          (insert (nth 3 h)))))
     (message "TOC written to %s" (file-name-nondirectory toc-path))))
 
 (defun writing/maybe-generate-toc ()
