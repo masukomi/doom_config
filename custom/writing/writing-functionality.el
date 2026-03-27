@@ -100,25 +100,31 @@ Ensures an entry exists in locations.org."
     (writing/ensure-in-registry input id "locations.org" "location-id" "Locations")))
 
 (defun writing/add-date ()
-  "Set the DATE and DAY-OF-WEEK properties on the current heading.
-Defaults the calendar picker to the nearest preceding DATE property if found."
+  "Set the DATE property on the current heading, replacing any existing value.
+If #+WRITING_FICTIONAL_DATES: t is set, prompts for a plain string with no
+calendar picker, prior-date defaulting, or day-of-week calculation.
+Otherwise presents the calendar picker defaulting to the nearest preceding
+DATE property, and also sets DAY-OF-WEEK."
   (interactive)
-  (let* ((prev-date-string
-          (save-excursion
-            (when (re-search-backward "^[ \t]*:DATE:[ \t]*\\(.+\\)$" nil t)
-              (string-trim (match-string 1)))))
-         (org-overriding-default-time
-          (when prev-date-string
-            (org-time-string-to-time prev-date-string)))
-         (date   (org-read-date))
-         (parsed (org-parse-time-string date))
-         (dow    (aref calendar-day-name-array
-                       (calendar-day-of-week
-                        (list (nth 4 parsed)
-                              (nth 3 parsed)
-                              (nth 5 parsed))))))
-    (org-entry-put nil "DATE" date)
-    (org-entry-put nil "DAY-OF-WEEK" dow)))
+  (if (string= "t" (cadr (assoc "WRITING_FICTIONAL_DATES"
+                                (org-collect-keywords '("WRITING_FICTIONAL_DATES")))))
+      (org-entry-put nil "DATE" (read-string "Date: "))
+    (let* ((prev-date-string
+            (save-excursion
+              (when (re-search-backward "^[ \t]*:DATE:[ \t]*\\(.+\\)$" nil t)
+                (string-trim (match-string 1)))))
+           (org-overriding-default-time
+            (when prev-date-string
+              (org-time-string-to-time prev-date-string)))
+           (date   (org-read-date))
+           (parsed (org-parse-time-string date))
+           (dow    (aref calendar-day-name-array
+                         (calendar-day-of-week
+                          (list (nth 4 parsed)
+                                (nth 3 parsed)
+                                (nth 5 parsed))))))
+      (org-entry-put nil "DATE" date)
+      (org-entry-put nil "DAY-OF-WEEK" dow))))
 
 (defun writing/add-notes ()
   "Open the NOTES drawer of the current heading, creating it if absent.
@@ -331,7 +337,7 @@ appended before the extension."
          (headings   (writing/ensure-custom-ids-and-collect)))
     (with-temp-file toc-path
       (insert (format "#+TITLE: TOC: %s\n" title))
-      (insert (format "#+TOC_TARGET: %s\n" story-name))
+      (insert (format "#+WRITING_TOC_TARGET: %s\n" story-name))
       (insert "#+STARTUP: fold\n\n")
       (dolist (h headings)
         (insert (format "%s [[toc:#%s][%s]]\n"
@@ -349,18 +355,18 @@ appended before the extension."
     (writing/generate-toc)))
 
 (defun writing/toc-target-file ()
-  "Return the expanded path of #+TOC_TARGET in the current buffer, or nil."
-  (when-let ((target (cadr (assoc "TOC_TARGET"
-                                  (org-collect-keywords '("TOC_TARGET"))))))
+  "Return the expanded path of #+WRITING_TOC_TARGET in the current buffer, or nil."
+  (when-let ((target (cadr (assoc "WRITING_TOC_TARGET"
+                                  (org-collect-keywords '("WRITING_TOC_TARGET"))))))
     (expand-file-name target (file-name-directory (buffer-file-name)))))
 
 (defun writing/toc-follow-link (search-term)
-  "Follow a toc: link by jumping to SEARCH-TERM in the TOC_TARGET file.
+  "Follow a toc: link by jumping to SEARCH-TERM in the WRITING_TOC_TARGET file.
 Uses the window already showing the target if one exists; otherwise
 displays it in the next window, splitting if only one window is open."
   (let ((target-path (writing/toc-target-file)))
     (unless target-path
-      (user-error "No #+TOC_TARGET: keyword in this buffer"))
+      (user-error "No #+WRITING_TOC_TARGET: keyword in this buffer"))
     (let* ((target-buf (or (get-file-buffer target-path)
                            (find-file-noselect target-path)))
            (target-win (or (get-buffer-window target-buf)
