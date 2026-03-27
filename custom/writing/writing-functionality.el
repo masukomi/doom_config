@@ -126,6 +126,32 @@ DATE property, and also sets DAY-OF-WEEK."
       (org-entry-put nil "DATE" date)
       (org-entry-put nil "DAY-OF-WEEK" dow))))
 
+(defun writing/add-date-range ()
+  "Set the DATE-RANGE property on the current heading.
+Prompts for a start date, then an end date defaulting to start+1 day.
+The value is stored as START--END (e.g. 2024-03-12--2024-03-15).
+If #+WRITING_FICTIONAL_DATES: t, prompts for plain text strings instead
+with no calendar picker or date arithmetic."
+  (interactive)
+  (if (string= "t" (cadr (assoc "WRITING_FICTIONAL_DATES"
+                                (org-collect-keywords '("WRITING_FICTIONAL_DATES")))))
+      (let* ((start (read-string "Start date: "))
+             (end   (read-string "End date: ")))
+        (org-entry-put nil "DATE-RANGE" (concat start "--" end)))
+    (let* ((prev-date-string
+            (save-excursion
+              (when (re-search-backward "^[ \t]*:DATE:[ \t]*\\(.+\\)$" nil t)
+                (string-trim (match-string 1)))))
+           (org-overriding-default-time
+            (when prev-date-string
+              (org-time-string-to-time prev-date-string)))
+           (start    (org-read-date))
+           (next-day (time-add (org-time-string-to-time start)
+                               (days-to-time 1))))
+      (let ((org-overriding-default-time next-day))
+        (org-entry-put nil "DATE-RANGE"
+                       (concat start "--" (org-read-date)))))))
+
 (defun writing/add-notes ()
   "Open the NOTES drawer of the current heading, creating it if absent.
 If a PROPERTIES drawer exists, NOTES is inserted after it.
@@ -391,6 +417,7 @@ displays it in the next window, splitting if only one window is open."
   (add-hook 'after-save-hook #'writing/maybe-generate-toc nil t)
   (local-set-key (kbd "C-c w c") #'writing/add-character)
   (local-set-key (kbd "C-c w d") #'writing/add-date)
+  (local-set-key (kbd "C-c w D") #'writing/add-date-range)
   (local-set-key (kbd "C-c w l") #'writing/add-location)
   (local-set-key (kbd "C-c w n") #'writing/add-notes)
   (local-set-key (kbd "C-c w p") #'writing/set-point-of-view)
@@ -403,6 +430,7 @@ displays it in the next window, splitting if only one window is open."
   "C-c w"   "writing"
   "C-c w c" "add character"
   "C-c w d" "add date"
+  "C-c w D" "add date range"
   "C-c w l" "add location"
   "C-c w n" "add notes"
   "C-c w p" "set point-of-view"
