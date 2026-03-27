@@ -100,7 +100,7 @@ Ensures an entry exists in locations.org."
     (writing/ensure-in-registry input id "locations.org" "location-id" "Locations")))
 
 (defun writing/add-date ()
-  "Set the DATE property on the current heading, replacing any existing value.
+  "Set the DATE and DAY-OF-WEEK properties on the current heading.
 Defaults the calendar picker to the nearest preceding DATE property if found."
   (interactive)
   (let* ((prev-date-string
@@ -109,8 +109,16 @@ Defaults the calendar picker to the nearest preceding DATE property if found."
               (string-trim (match-string 1)))))
          (org-overriding-default-time
           (when prev-date-string
-            (org-time-string-to-time prev-date-string))))
-    (org-entry-put nil "DATE" (org-read-date))))
+            (org-time-string-to-time prev-date-string)))
+         (date   (org-read-date))
+         (parsed (org-parse-time-string date))
+         (dow    (aref calendar-day-name-array
+                       (calendar-day-of-week
+                        (list (nth 4 parsed)
+                              (nth 3 parsed)
+                              (nth 5 parsed))))))
+    (org-entry-put nil "DATE" date)
+    (org-entry-put nil "DAY-OF-WEEK" dow)))
 
 (defun writing/add-notes ()
   "Open the NOTES drawer of the current heading, creating it if absent.
