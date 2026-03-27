@@ -99,6 +99,11 @@ Ensures an entry exists in locations.org."
     (writing/add-to-property "LOCATIONS" id)
     (writing/ensure-in-registry input id "locations.org" "location-id" "Locations")))
 
+(defun writing/add-date ()
+  "Set the DATE property on the current heading, replacing any existing value."
+  (interactive)
+  (org-entry-put nil "DATE" (org-read-date)))
+
 (defun writing/add-notes ()
   "Open the NOTES drawer of the current heading, creating it if absent.
 If a PROPERTIES drawer exists, NOTES is inserted after it.
@@ -363,6 +368,7 @@ displays it in the next window, splitting if only one window is open."
     (writing/enable-dialogue-highlighting))
   (add-hook 'after-save-hook #'writing/maybe-generate-toc nil t)
   (local-set-key (kbd "C-c w c") #'writing/add-character)
+  (local-set-key (kbd "C-c w d") #'writing/add-date)
   (local-set-key (kbd "C-c w l") #'writing/add-location)
   (local-set-key (kbd "C-c w n") #'writing/add-notes)
   (local-set-key (kbd "C-c w p") #'writing/set-point-of-view)
@@ -374,6 +380,7 @@ displays it in the next window, splitting if only one window is open."
 (which-key-add-major-mode-key-based-replacements 'org-mode
   "C-c w"   "writing"
   "C-c w c" "add character"
+  "C-c w d" "add date"
   "C-c w l" "add location"
   "C-c w n" "add notes"
   "C-c w p" "set point-of-view"
