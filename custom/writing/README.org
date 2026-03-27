@@ -1,0 +1,157 @@
+#+TITLE: Writing Functionality
+
+A collection of org-mode utilities for prose writing. All keybindings are
+active in =org-mode= buffers. Press =C-c w= to see the full list via which-key.
+
+* Keybindings
+
+| Key       | Function                     | Description                            |
+|-----------+------------------------------+----------------------------------------|
+| =C-c w c= | =writing/add-character=      | Add a character to the current heading |
+| =C-c w d= | =writing/add-date=           | Set the date on the current heading    |
+| =C-c w l= | =writing/add-location=       | Add a location to the current heading  |
+| =C-c w n= | =writing/add-notes=          | Open / create the NOTES drawer         |
+| =C-c w p= | =writing/set-point-of-view=  | Set the POV character on the heading   |
+| =C-c w s= | =writing/toggle-stylization= | Toggle dialogue highlighting           |
+| =C-c w t= | =writing/generate-toc=       | Generate or refresh the TOC file       |
+
+* Commands
+
+** =C-c w c= — Add Character
+
+Adds a character ID to the =CHARACTERS= property of the current heading. Presents existing character IDs from the buffer as completion candidates. You may enter an existing ID or a new display name; new names are converted to a slug-style ID (lowercased, punctuation replaced with hyphens).
+
+Multiple characters are stored using org's =PROPERTY+= convention:
+- First character → =:CHARACTERS: some-id=
+- Additional characters → =:CHARACTERS+: another-id=
+
+Also ensures an entry exists for the character in =characters.org= in the same directory, creating that file if necessary.
+
+When you enter something that doesn't exist as a character ID in the current document it will take your supplied text, use it to create a new heading in =characters.org= and then create an id from the string.
+
+For example, typing "Bob Smith" would create a new =bob-smith= id, and add it as a character in the current heading. It will also check for that id in =characters.org= and if it is not found it would create a =Bob Smith= heading, and add =bob-smith= as a =character-id= property on that heading.
+
+** =C-c w d= — Add Date
+
+Sets the =DATE= property on the current heading. Behaviour depends on whether
+=#+WRITING_FICTIONAL_DATES: t= is present in the file.
+
+*Real dates* (keyword absent or set to =nil=):
+- Opens the org calendar picker
+- Defaults the calendar to the nearest preceding =DATE= property in the
+  document, so consecutive scenes can be dated quickly
+- Also sets =DAY-OF-WEEK= (e.g. =Wednesday=) derived from the selected date
+
+*Fictional dates* (=#+WRITING_FICTIONAL_DATES: t=):
+- Prompts for a plain text string with no calendar or date parsing
+- Only sets =DATE=; =DAY-OF-WEEK= is not set
+- Accepts any format: ="The 3rd day of the Harvest Moon"=, ="Day 47"=, etc.
+
+** =C-c w l= — Add Location
+
+Adds a location ID to the =LOCATIONS= property of the current heading.
+Behaviour mirrors =C-c w c=: completion from existing IDs, slug conversion
+for new names, and =LOCATIONS+= for multiple values.
+
+Also ensures an entry exists in =locations.org= in the same directory.
+
+This behaves identically to Add Character, just with locations.
+
+** =C-c w n= — Add Notes
+
+Opens the =:NOTES:= drawer on the current heading for freeform annotation.
+
+- If no =NOTES= drawer exists, one is created. If a =PROPERTIES= drawer is
+  present, =NOTES= is inserted immediately after it.
+- A new blank line is added at the bottom of the drawer's content and the
+  cursor is moved there, ready to type.
+- =NOTES= drawers are excluded from org export.
+
+** =C-c w p= — Set Point of View
+
+Sets the =POV= property on the current heading to a single character ID,
+replacing any existing value. Presents existing character IDs for completion.
+
+Also ensures the character exists in =characters.org=.
+
+Essentially the same thing as the Add Character functionality, except focused on the =POV= property.
+
+NOTE: assumes there can only be one POV per heading.
+
+** =C-c w s= — Toggle Stylization
+
+Toggles dialogue highlighting on and off for the current buffer.
+
+- Adds =#+WRITING_STYLIZATION: t= to the file keywords when enabling, or
+  sets it to =nil= when disabling, so the setting persists across sessions.
+- When enabled, text within double quotes is highlighted using
+  =writing/dialogue-face= (foreground colour only, so bold/italic/underline
+  inside dialogue are preserved).
+- Handles the English-grammar convention for multi-paragraph dialogue: when
+  a speaker's speech spans multiple paragraphs, only the final paragraph
+  has a closing quote. Each paragraph is highlighted as a separate region.
+- A closing quote at the end of a line (e.g. =4'2"=) is never treated as an
+  opening quote.
+
+Customise the highlight colour with =M-x customize-face RET writing/dialogue-face=.
+
+** =C-c w t= — Generate Table of Contents
+
+Generates (or replaces) a table-of-contents file for the current story file.
+
+Unlike existing TOC generators this creates a separate file that can exist as a navigational aid in a vertical split. Clicking a heading in the TOC file will jump you to the appropriate location in your main file. Additionally, it will copy over any drawers so that you have a quick way to see metadata related to each heading (characters, locations, date, etc.).
+
+*TOC file naming:* the story filename with =_toc= inserted before the
+extension. Example: =ji_woos_story.org= → =ji_woos_story_toc.org=.
+
+*What it does:*
+- Assigns a =CUSTOM_ID= property to any heading that lacks one, derived from
+  the heading text (e.g. "Chapter One" → =chapter-one=, with =-2=, =-3=
+  suffixes to avoid collisions).
+- Writes the TOC file from scratch, replacing it if it already exists.
+- Mirrors the heading hierarchy of the story file, with each entry as a
+  =toc:= link: =[[toc:#custom-id][Heading Text]]=.
+- Copies all drawers (=PROPERTIES=, =NOTES=, and any others) from each
+  heading into the TOC file beneath the corresponding entry.
+- Sets =#+STARTUP: fold= so the TOC file opens with all headings folded.
+- Disables line-number display in TOC buffers automatically.
+
+Add =#+WRITING_GENERATE_TOC_ON_SAVE: t= to the story file to regenerate the
+TOC automatically on every save.
+
+* TOC File Usage
+
+Open the story file and its TOC file side by side. Clicking (or pressing
+=RET= on) a =toc:= link in the TOC file jumps to the corresponding heading in
+the story file:
+
+- If the story file is already visible in another window, that window is used.
+- If only one window is open, the view is split and the story file opens on
+  the right.
+- Otherwise the next window is used.
+
+The TOC file must contain =#+WRITING_TOC_TARGET: filename.org= pointing to the story
+file. This keyword is written automatically by =writing/generate-toc=.
+
+* File Keywords
+
+These =#+KEYWORD: value= lines go at the top of your org file (before the first
+heading) and control optional behavior.
+
+
+** Story Document
+All of these are optional.
+
+| Keyword                              | File  | Effect                                               |
+|--------------------------------------+-------+------------------------------------------------------|
+| =#+WRITING_STYLIZATION: t=           | story | Enable dialogue highlighting in this buffer          |
+| =#+WRITING_FICTIONAL_DATES: t=       | story | Use plain text date entry instead of calendar picker |
+| =#+WRITING_GENERATE_TOC_ON_SAVE: t=  | story | Regenerate the TOC file every time the file is saved |
+| =#+WRITING_TOC_TARGET: filename.org= | toc   | The story file this TOC file points to               |
+
+** Table of Contents Document
+=WRITING_TOC_TARGET= is automatically defined when the =*_toc.org= document is generated. It is needed for =toc= links to be able to find the buffer containing the story that you'd like to jump to a location in.
+
+| Keyword                              | File  | Effect                                               |
+|--------------------------------------+-------+------------------------------------------------------|
+| =#+WRITING_TOC_TARGET: filename.org= | toc   | The story file this TOC file points to               |
