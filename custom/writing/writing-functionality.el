@@ -100,9 +100,17 @@ Ensures an entry exists in locations.org."
     (writing/ensure-in-registry input id "locations.org" "location-id" "Locations")))
 
 (defun writing/add-date ()
-  "Set the DATE property on the current heading, replacing any existing value."
+  "Set the DATE property on the current heading, replacing any existing value.
+Defaults the calendar picker to the nearest preceding DATE property if found."
   (interactive)
-  (org-entry-put nil "DATE" (org-read-date)))
+  (let* ((prev-date-string
+          (save-excursion
+            (when (re-search-backward "^[ \t]*:DATE:[ \t]*\\(.+\\)$" nil t)
+              (string-trim (match-string 1)))))
+         (org-overriding-default-time
+          (when prev-date-string
+            (org-time-string-to-time prev-date-string))))
+    (org-entry-put nil "DATE" (org-read-date))))
 
 (defun writing/add-notes ()
   "Open the NOTES drawer of the current heading, creating it if absent.
