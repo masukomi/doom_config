@@ -70,8 +70,8 @@
 
 ;; normally centaur-tabs is included via "tabs" in init.el
 ;; However, there's a bug in it that I have fixed locally.
-(package! centaur-tabs
-  :recipe (:local-repo "~/workspace/centaur-tabs"))
+(package! centaur-tabs)
+  ; :recipe (:local-repo "~/workspace/centaur-tabs"))
 
 ; extends Vline Mode https://www.emacswiki.org/emacs/VlineMode
 (package! col-highlight)
