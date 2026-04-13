@@ -152,6 +152,10 @@ All of these are optional.
 ** Table of Contents Document
 =WRITING_TOC_TARGET= is automatically defined when the =*_toc.org= document is generated. It is needed for =toc= links to be able to find the buffer containing the story that you'd like to jump to a location in.
 
-| Keyword                              | File  | Effect                                               |
-|--------------------------------------+-------+------------------------------------------------------|
-| =#+WRITING_TOC_TARGET: filename.org= | toc   | The story file this TOC file points to               |
+| Keyword                              | File | Effect                                 |
+|--------------------------------------+------+----------------------------------------|
+| =#+WRITING_TOC_TARGET: filename.org= | toc  | The story file this TOC file points to |
+
+* Recommended Companion Packages
+- [[https://github.com/tesujimath/org-wc#readme][org-wc]]
+  A word count plugin with intelligent defaults about what parts to include, and exclude from counting. In addition to showing you the word count for the whole document it can also show it per heading line, or summed over sub-headings.
