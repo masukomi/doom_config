@@ -1,0 +1,35 @@
+change-type:
+    type: select
+    destination: title
+    after-string: '] '
+    before-string: '['
+    instructions: What kind of change?
+    modifiable: true
+    options:
+        - fix
+        - add
+        - change
+        - refactor
+        - clean-up
+commit-title:
+    destination: title
+    placeholder: Commit Title
+    type: text
+commit-description:
+    allow-empty: true
+    destination: body
+    instructions: Please describe your changes.
+    type: multiline-text
+code-sections:
+  type: multi-select
+  destination: body
+  instructions: Which section(s) of the codebase?
+  before-string: "\n\nCode Sections: "
+  allow-empty: true
+  options:
+  - ui
+  - ux
+  - writing
+  - packages
+  modifiable: true
+  record-as: joined-string
