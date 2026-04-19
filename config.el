@@ -226,9 +226,13 @@ current buffer's, reload dir-locals."
                     :overline nil
                     :underline nil)))))
 
-; enable word-count in some modes
+; enable word-count in some modes, but only update on save (not every keystroke)
 (setq doom-modeline-enable-word-count t)
-(setq doom-modeline-continuous-word-count-modes '(markdown-mode gfm-mode org-mode))
+; (setq doom-modeline-continuous-word-count-modes '(markdown-mode gfm-mode org-mode))
+(setq doom-modeline-continuous-word-count-modes '())
+; I don't really need to waste cycles updating the word count on every keystroke
+; better to just update it on save
+(add-hook 'after-save-hook #'force-mode-line-update)
 ; aligning right-fringe to address cutoff issues
 (setq mode-line-right-align-edge 'right-fringe)
 (after! doom-modeline
@@ -1116,7 +1120,8 @@ See options: `dired-hide-details-hide-symlink-targets',
      (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
      (json "https://github.com/tree-sitter/tree-sitter-json")
      (make "https://github.com/alemuller/tree-sitter-make")
-     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+     (markdown "https://github.com/MDeiml/tree-sitter-markdown" "split_parser" "tree-sitter-markdown/src")
+     (markdown-inline "https://github.com/MDeiml/tree-sitter-markdown" "split_parser" "tree-sitter-markdown-inline/src")
      (python "https://github.com/tree-sitter/tree-sitter-python")
      (toml "https://github.com/tree-sitter/tree-sitter-toml")
      (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
