@@ -720,6 +720,10 @@ See options: `dired-hide-details-hide-symlink-targets',
     )
 )
 
+; SPELL BETTUR
+(setq ispell-program-name "hunspell")
+(setq ispell-dictionary "en_US")
+
 (dolist (hook '(text-mode-hook))
   (add-hook hook (lambda () (flyspell-mode 1))))
 

@@ -1701,12 +1701,36 @@ It's not "tangled" here because I set it later in a batch.
 #+end_src
 
 ** Sometimes I don't spell gud.
-Enable flyspell in text modes
+*** Better dictionary
+By default emacs will likely use =ispell= which is the oldest and most limited dictionary out of =ispell=, =aspell=, and =hunspell=
+
+We're going to use [[https://github.com/hunspell/hunspell][Hunspell]] as it is likely to have the most comprehensive dictionary with modern (internet era) words.
+
+If you want hunspell instead (richer dictionary, same as Firefox uses):
+#+begin_src bash
+brew install hunspell
+# Then download dictionary files:
+mkdir -p ~/Library/Spelling
+cd ~/Library/Spelling
+curl -LO https://cgit.freedesktop.org/libreoffice/dictionaries/plain/en/en_US.dic
+curl -LO https://cgit.freedesktop.org/libreoffice/dictionaries/plain/en/en_US.aff
+#+end_src
+
+Set hunspell as the program ispell will use
+
+#+begin_src elisp :tangle config.el
+; SPELL BETTUR
+(setq ispell-program-name "hunspell")
+(setq ispell-dictionary "en_US")
+#+end_src
+*** Enable flyspell in text modes
 
 #+BEGIN_SRC elisp :tangle config.el
 (dolist (hook '(text-mode-hook))
   (add-hook hook (lambda () (flyspell-mode 1))))
 #+END_SRC
+
+
 
 ** word counts
 ⚠️ There's a better way to do this if you're using doom-modeline (see [[*Modeline tweaks][Modeline tweaks]]  above).
