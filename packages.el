@@ -240,19 +240,40 @@
 
 ; UTILITIES
 
+; nice integration for claude-code
+; usage documented in README
+; https://github.com/manzaltu/claude-code-ide.el#usage
+(package! claude-code-ide
+        :recipe (:host github :repo "manzaltu/claude-code-ide.el"))
+; Emulate A Terminal, in a region, in a buffer and in Eshell
+; only installed to support claude-code-idea package (above)
+; https://codeberg.org/akib/emacs-eat
+(package! eat)
+
 ; agent-shell
 ; https://github.com/xenodium/agent-shell
-(package! shell-maker)
-(package! acp)
-(package! agent-shell)
+;; (package! shell-maker)
+;; (package! acp)
+;; (package! agent-shell)
 
 ; dtrt-indent: An Emacs minor mode that guesses the indentation offset
 ; originally used for creating source code files and transparently adjusts the
 ; corresponding settings in Emacs, making it more convenient to edit foreign
 ; files.
 (package! dtrt-indent)
+
+
+; envrc uses .envrc files like dot-env uses .env files
+; same basic idea, but buffer specific
+; instead of global like direnv.el
+(package! envrc)
 ; interactive align
 (package! ialign)
+
+; inheritenv allows background processes
+; to inheret the env from emacs.
+(package! inheritenv)
+
 ; folding based on indentation
 (package! yafolding)
 ; tailing files only better
