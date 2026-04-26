@@ -175,16 +175,16 @@ current buffer's, reload dir-locals."
   (winpulse-mode +1))
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
-;; numbers are disabled. For relative line numbers, set this to `relative'.
+;; numbers are disabled. `t` gets you absolute linu numbers.
+;; For relative line numbers, set this to `relative'.
 ;; for both, you gotta get funky.
-(setq display-line-numbers-type t)
-
+(setq display-line-numbers-type 'relative)
 (global-nlinum-mode 1)
 (nlinum-relative-setup-evil)               ;; setup for evil
 (setq nlinum-relative-redisplay-delay 0)   ;; delay
 (setq nlinum-relative-current-symbol "»") ;; or "" for display current line number
 (setq nlinum-relative-offset 0)            ;; 1 if you want 0, 2, 3...
-(nlinum-relative-on)                       ;; turn on relative line numbers
+;; nlinum-relative-on disabled — nlinum now shows absolute numbers (left column)
 
 ; highlight the contents of the selected parentheses
 (setq show-paren-delay 0)
@@ -312,6 +312,8 @@ current buffer's, reload dir-locals."
      (and (string-prefix-p "magit" name)
           (not (file-name-extension name)))
      )))
+
+(setq centaur-tabs-enable-key-bindings t)
 
 (defun masu/close-tab-or-workspace ()
   "Close the current tab if there are tabs open in the workspace.
@@ -811,6 +813,14 @@ See options: `dired-hide-details-hide-symlink-targets',
     '(;; other Babel languages
       (plantuml . t))))
 (setq org-plantuml-jar-path "/opt/homebrew/opt/plantuml/libexec/plantuml.jar")
+
+(setq
+  ; start off with things folded
+  ; manually override in a file with
+  ; #+STARTUP: showall
+  ; #+STARTUP: fold
+  org-startup-folded t
+)
 
 (defun masu/fold-current ()
   (interactive)

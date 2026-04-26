@@ -593,37 +593,46 @@ Henrik's advice is to use ~custom-set-faces!~ in most situations, but when you a
 *** Absolute & Relative Line Numbers
 
 Line numbers are important. For us Vim expats, relative line numbers save a lot of counting, but we still need to know which line is the the one the error message complained about.
-So, I have /both…/ most of the time.
+
+So, I have /both…/ most of the time. This requires 2 numbering systems, which is silly, but whatever.
+
+A sensible person would just…
+
+#+begin_src elisp :tangle no
+(setq display-line-numbers-type t)
+(nlinum-relative-on)
+#+end_src
+
+However, that results in the relative numbers in the far left of the gutter, and the absolute numbers up against what you're editing. To me, that's backwards, because absolute numbers are necessary to find where to look in a document, but the /relative/ numbers are the ones you care about once you've made it to the correct place and are actually editing things. So, in order to achieve this you have to convince both systems to display the opposite of what they normally do, which is absolutely whack. I don't understand why i can't just set the order of things in the gutter, but whatever.
+
 
 #+begin_src elisp :tangle config.el
 ;; This determines the style of line numbers in effect. If set to `nil', line
-;; numbers are disabled. For relative line numbers, set this to `relative'.
+;; numbers are disabled. `t` gets you absolute linu numbers.
+;; For relative line numbers, set this to `relative'.
 ;; for both, you gotta get funky.
-(setq display-line-numbers-type t)
-#+end_src
-
-⚠️ NOT tangled
-#+begin_src elisp :tangle no
-;; commence funkyness…
-(global-display-line-numbers-mode 1)
-; Alternatively, to use it only in programming modes:
-(add-hook 'prog-mode-hook #'display-line-numbers-mode)
-old way -> (display-line-numbers-mode)
-
-; Alternatively, to use it only in programming modes:
-(add-hook 'prog-mode-hook #'nlinum-mode)
-old way (nlinum-relative-on)
-#+end_src
-
-#+begin_src elisp :tangle config.el
+(setq display-line-numbers-type 'relative)
 (global-nlinum-mode 1)
 (nlinum-relative-setup-evil)               ;; setup for evil
 (setq nlinum-relative-redisplay-delay 0)   ;; delay
 (setq nlinum-relative-current-symbol "»") ;; or "" for display current line number
 (setq nlinum-relative-offset 0)            ;; 1 if you want 0, 2, 3...
-(nlinum-relative-on)                       ;; turn on relative line numbers
+;; nlinum-relative-on disabled — nlinum now shows absolute numbers (left column)
 #+end_src
 
+
+⚠️ NOT tangled
+#+begin_src elisp :tangle no
+;; commence funkyness…
+(global-display-line-numbers-mode 1)
+; Alternatively, to use display-line-numbers only in programming modes:
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+; old way → (display-line-numbers-mode)
+
+; Alternatively, to use nlinum only in programming modes:
+(add-hook 'prog-mode-hook #'nlinum-mode)
+; old way → (nlinum-relative-on)
+#+end_src
 *** Highlighting code in parens
 Not the prettiest, but it's very useful when working in lisp and scheme. This will highlight the contents of a paretheses when you leave the cursor on the start or end one.
 
@@ -749,13 +758,13 @@ Note: I've removed eldoc from the first segment, and added word-mode. Otherwise 
 
 In order to see which segments are currently being displayed, and on which side you can run
 
-#+begin_src elisp
+#+begin_src elisp :tangle no
 (documentation 'doom-modeline-format--main)
 #+end_src
 
 This returns the docstring which contains the exact segment list, formatted like:
 Modeline:
-#+begin_src elisp
+#+begin_src elisp :tangle no
 (lhs-segments … )
 (rhs-segments … )
 #+end_src
@@ -783,7 +792,7 @@ Custom emoji picker using ~custom/masu-emojis.el~ which includes 1800+ unicode e
 
 | Key     | Function                 | Description                                       |
 |---------+--------------------------+---------------------------------------------------|
-| C-c e i | masu/insert-custom-emoji | All unicode emojis + custom                       |
+| C-c e m | masu/insert-custom-emoji | All unicode emojis + custom                       |
 | C-c e c | insert-char              | lots of useful unicode characters. not just emoji |
 
 #+BEGIN_SRC elisp :tangle config.el
@@ -792,7 +801,7 @@ Custom emoji picker using ~custom/masu-emojis.el~ which includes 1800+ unicode e
 ;; Define C-c e as emoji prefix keymap
 (define-prefix-command 'emojify-command-map)
 (global-set-key (kbd "C-c e") 'emojify-command-map)
-(define-key emojify-command-map (kbd "i") #'masu/insert-custom-emoji)
+(define-key emojify-command-map (kbd "m") #'masu/insert-custom-emoji)
 (define-key emojify-command-map (kbd "c") #'insert-char)
 #+END_SRC
 
@@ -2736,11 +2745,11 @@ Full disclaimer, I set this up, but I never use ediff because [[https://kaleidos
 (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
 #+end_src
 
-** LLMs
+** Agentic Systems
 *** Agent-shell
-At the time of writing I'm just getting started with this thing and don't have any thoughts or advice for future you or me.
+This was… problematic to use with Claude because it didn't support the slash commands and I don't think I could figure out how to switch modes and… yeah. Disabled it for now.
 
-#+begin_src elisp :tangle config.el
+#+begin_src elisp
 ; agent-shell configuration for Claude
 (require 'acp)
 (require 'agent-shell)
