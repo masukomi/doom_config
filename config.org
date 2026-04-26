@@ -1604,7 +1604,11 @@ The following functions are also added to add metadata to the =PROPERTIES= drawe
 - =C-c w c= → =writing/add-character=
 - =C-c w l= → =writing/add-location=
 - =C-c w p= → =writing/set-point-of-view=
+
+And last, but not least, toggling visual styling to help with writing.
+
 - =C-c w s= → =writing/toggle-stylization=
+  Note: this will add ~#+WRITING_STYLIZATION: t~ or ~nil~ to the file keywords.
 
 #+begin_src elisp :tangle config.el
 (load "writing-functionality.el")
