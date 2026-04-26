@@ -253,11 +253,19 @@ current buffer's, reload dir-locals."
 
 (load "masu-emojis")
 
-;; Define C-c e as emoji prefix keymap
-(define-prefix-command 'emojify-command-map)
-(global-set-key (kbd "C-c e") 'emojify-command-map)
-(define-key emojify-command-map (kbd "i") #'masu/insert-custom-emoji)
-(define-key emojify-command-map (kbd "c") #'insert-char)
+;; C-c e is a broad prefix; emoji commands live under 'e' within it
+(define-prefix-command 'masu/emoji-map)
+(define-key masu/emoji-map (kbd "m") #'masu/insert-custom-emoji)
+(define-key masu/emoji-map (kbd "c") #'insert-char)
+
+(define-prefix-command 'masu/c-c-e-map)
+(global-set-key (kbd "C-c e") 'masu/c-c-e-map)
+(define-key masu/c-c-e-map (kbd "e") 'masu/emoji-map)
+
+; cosmetic. makes the "e" option under "C-c e" say "emoji"
+; instead of masu/emoji-map
+(with-eval-after-load 'which-key
+  (which-key-add-key-based-replacements "C-c e e" "emoji"))
 
 (use-package centaur-tabs
   :demand
@@ -1161,11 +1169,14 @@ See options: `dired-hide-details-hide-symlink-targets',
 (winner-mode)
 (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
 
-; agent-shell configuration for Claude
-(require 'acp)
-(require 'agent-shell)
-(setq agent-shell-anthropic-authentication
-        (agent-shell-anthropic-make-authentication :login t)
-      ; make claude our default. this doesn't work. I don't know why.
-      agent-shell-preferred-agent-config
-        (agent-shell-anthropic-make-claude-code-config))
+(use-package! claude-code-ide
+  :config
+  (load "claude-mods")
+  (setq claude-code-ide-terminal-backend 'eat))
+
+(map! (:prefix ("C-c e c" . "claude-code-ide")
+       :desc "Send prompt"                   "p" #'claude-code-ide-send-prompt
+       :desc "Send region"                   "r" #'masu/claude-code-send-region
+       :desc "Send region with prompt"       "R" #'masu/claude-code-send-region-with-prompt
+       :desc "Send region to instance"       "I" #'masu/claude-code-send-region-select-instance
+       :desc "Send with context to instance" "X" #'masu/claude-code-send-command-with-context-select-instance))

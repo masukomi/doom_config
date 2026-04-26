@@ -48,17 +48,18 @@ Yes, ~config.el~ is what Doom reads, but this is what creates that.
 Tell it where to find custom elisp files.
 At the time of writing this consists of
 
-- ~eruby-mode.el~
-- ~flycheck-standardrb.el~
-- ~masu-emojis.el~
-- ~maybe-insert-org-entity.el~
-- ~org-emphasis-marker-face.el~
-- ~org-fold-restore.el~
-- ~peek-as-you-go.el~
-- ~ruby-align.el~
-- ~screenshot.el~
-- ~sh-send-line-or-region.el~
-- ~titlecase.el~
+- =eruby-mode.el=
+- =flycheck-standardrb.el=
+- =claude-mods.el=
+- =masu-emojis.el=
+- =maybe-insert-org-entity.el=
+- =org-emphasis-marker-face.el=
+- =org-fold-restore.el=
+- =peek-as-you-go.el=
+- =ruby-align.el=
+- =screenshot.el=
+- =sh-send-line-or-region.el=
+- =titlecase.el=
 
 #+begin_src elisp :tangle config.el
 ;;---------------------------------
@@ -788,21 +789,29 @@ See Also [[*word counts][word counts]] under the org-mode section.
   )
 #+end_src
 *** Easier Emoji
-Custom emoji picker using ~custom/masu-emojis.el~ which includes 1800+ unicode emojis plus custom additions/aliases. Edit that file to add more. Yes, I know =emacs-emojify= exists. Yes, I tried it. I abandoned it for /many/ reasons and put together a custom package that is much more straightforward, works the way I want, and is easy to add more emoji and / or aliases to.
+Custom emoji picker using =custom/masu-emojis.el= which includes 1800+ unicode emojis plus custom additions/aliases. Edit that file to add more. Yes, I know =emacs-emojify= exists. Yes, I tried it. I abandoned it for /many/ reasons and put together a custom package that is much more straightforward, works the way I want, and is easy to add more emoji and / or aliases to.
 
-| Key     | Function                 | Description                                       |
-|---------+--------------------------+---------------------------------------------------|
-| C-c e m | masu/insert-custom-emoji | All unicode emojis + custom                       |
-| C-c e c | insert-char              | lots of useful unicode characters. not just emoji |
+| Key       | Function                 | Description                                       |
+|-----------+--------------------------+---------------------------------------------------|
+| C-c e e m | masu/insert-custom-emoji | All unicode emojis + custom                       |
+| C-c e e c | insert-char              | lots of useful unicode characters. not just emoji |
 
 #+BEGIN_SRC elisp :tangle config.el
 (load "masu-emojis")
 
-;; Define C-c e as emoji prefix keymap
-(define-prefix-command 'emojify-command-map)
-(global-set-key (kbd "C-c e") 'emojify-command-map)
-(define-key emojify-command-map (kbd "m") #'masu/insert-custom-emoji)
-(define-key emojify-command-map (kbd "c") #'insert-char)
+;; C-c e is a broad prefix; emoji commands live under 'e' within it
+(define-prefix-command 'masu/emoji-map)
+(define-key masu/emoji-map (kbd "m") #'masu/insert-custom-emoji)
+(define-key masu/emoji-map (kbd "c") #'insert-char)
+
+(define-prefix-command 'masu/c-c-e-map)
+(global-set-key (kbd "C-c e") 'masu/c-c-e-map)
+(define-key masu/c-c-e-map (kbd "e") 'masu/emoji-map)
+
+; cosmetic. makes the "e" option under "C-c e" say "emoji"
+; instead of masu/emoji-map
+(with-eval-after-load 'which-key
+  (which-key-add-key-based-replacements "C-c e e" "emoji"))
 #+END_SRC
 
 *** Tabs!
@@ -2746,10 +2755,26 @@ Full disclaimer, I set this up, but I never use ediff because [[https://kaleidos
 #+end_src
 
 ** Agentic Systems
+*** Claude Code IDE
+
+#+begin_src elisp
+(use-package! claude-code-ide
+  :config
+  (load "claude-mods")
+  (setq claude-code-ide-terminal-backend 'eat))
+
+(map! (:prefix ("C-c e c" . "claude-code-ide")
+       :desc "Send prompt"                   "p" #'claude-code-ide-send-prompt
+       :desc "Send region"                   "r" #'masu/claude-code-send-region
+       :desc "Send region with prompt"       "R" #'masu/claude-code-send-region-with-prompt
+       :desc "Send region to instance"       "I" #'masu/claude-code-send-region-select-instance
+       :desc "Send with context to instance" "X" #'masu/claude-code-send-command-with-context-select-instance))
+#+end_src
+
 *** Agent-shell
 This was… problematic to use with Claude because it didn't support the slash commands and I don't think I could figure out how to switch modes and… yeah. Disabled it for now.
 
-#+begin_src elisp
+#+begin_src elisp :tangle no
 ; agent-shell configuration for Claude
 (require 'acp)
 (require 'agent-shell)
