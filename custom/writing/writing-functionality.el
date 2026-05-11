@@ -99,6 +99,18 @@ Ensures an entry exists in locations.org."
     (writing/add-to-property "LOCATIONS" id)
     (writing/ensure-in-registry input id "locations.org" "location-id" "Locations")))
 
+(defun writing/add-content-warning ()
+  "Add a content warning to the CONTENT_WARNINGS property of the current org heading.
+Presents existing content warning IDs from the buffer for completion. Accepts
+either an existing ID or a new display name (which is converted to an ID).
+Ensures an entry exists in content_warnings.org."
+  (interactive)
+  (let* ((result (writing/read-entity-input "Content Warning: " "CONTENT_WARNINGS"))
+         (id (car result))
+         (input (cdr result)))
+    (writing/add-to-property "CONTENT_WARNINGS" id)
+    (writing/ensure-in-registry input id "content_warnings.org" "content-warning-id" "Content Warnings")))
+
 (defun writing/add-date ()
   "Set the DATE property on the current heading, replacing any existing value.
 If #+WRITING_FICTIONAL_DATES: t is set, prompts for a plain string with no
@@ -422,7 +434,9 @@ displays it in the next window, splitting if only one window is open."
   (local-set-key (kbd "C-c w n") #'writing/add-notes)
   (local-set-key (kbd "C-c w p") #'writing/set-point-of-view)
   (local-set-key (kbd "C-c w s") #'writing/toggle-stylization)
-  (local-set-key (kbd "C-c w t") #'writing/generate-toc))
+  (local-set-key (kbd "C-c w t") #'writing/generate-toc)
+  (local-set-key (kbd "C-c w w") #'writing/add-content-warning)
+  )
 
 (add-hook 'org-mode-hook #'writing/org-mode-setup)
 
@@ -435,4 +449,6 @@ displays it in the next window, splitting if only one window is open."
   "C-c w n" "add notes"
   "C-c w p" "set point-of-view"
   "C-c w s" "toggle stylization"
-  "C-c w t" "generate toc")
+  "C-c w t" "generate toc"
+  "C-c w w" "add chapter content warning"
+  )
