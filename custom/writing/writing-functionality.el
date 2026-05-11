@@ -60,17 +60,31 @@ Adds a heading with DISPLAY-NAME and ID-PROPERTY set to ENTITY-ID if not found."
                           display-name id-property entity-id))
           (save-buffer))))))
 
-(defun writing/known-ids-for-property (prop-name)
-  "Return a deduplicated list of IDs stored under PROP-NAME and PROP-NAME+ in the buffer."
-  (delete-dups
-   (apply #'append
-          (mapcar (lambda (v) (split-string v nil t))
-                  (org-property-values prop-name)))))
+(defun writing/known-ids-for-property (prop-name &optional file-path)
+  "Return a deduplicated list of IDs stored under PROP-NAME in the current buffer.
+If FILE-PATH is given, collect from that file instead (resolved relative to
+the current buffer's directory). Returns nil if FILE-PATH does not exist."
+  (let ((ids-from
+         (lambda (buf)
+           (with-current-buffer buf
+             (delete-dups
+              (apply #'append
+                     (mapcar (lambda (v) (split-string v nil t))
+                             (org-property-values prop-name))))))))
+    (if file-path
+        (let* ((dir (file-name-directory (buffer-file-name)))
+               (abs (expand-file-name file-path dir)))
+          (when (file-exists-p abs)
+            (let ((buf (find-file-noselect abs)))
+              (funcall ids-from buf))))
+      (funcall ids-from (current-buffer)))))
 
-(defun writing/read-entity-input (prompt prop-name)
+(defun writing/read-entity-input (prompt prop-name &optional file-path)
   "Prompt with PROMPT, offering existing PROP-NAME values for completion.
+If FILE-PATH is provided, completions are drawn from that file rather than
+the current buffer.
 Returns (ID . INPUT) where ID is the derived entity ID and INPUT is what the user typed."
-  (let ((input (string-trim (completing-read prompt (writing/known-ids-for-property prop-name) nil nil))))
+  (let ((input (string-trim (completing-read prompt (writing/known-ids-for-property prop-name file-path) nil nil))))
     (when (string-empty-p input)
       (user-error "Name cannot be empty"))
     (cons (writing/make-entity-id input) input)))
@@ -105,7 +119,7 @@ Presents existing content warning IDs from the buffer for completion. Accepts
 either an existing ID or a new display name (which is converted to an ID).
 Ensures an entry exists in content_warnings.org."
   (interactive)
-  (let* ((result (writing/read-entity-input "Content Warning: " "CONTENT_WARNINGS"))
+  (let* ((result (writing/read-entity-input "Content Warning: " "content-warning-id" "content_warnings.org"))
          (id (car result))
          (input (cdr result)))
     (writing/add-to-property "CONTENT_WARNINGS" id)
