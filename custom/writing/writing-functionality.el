@@ -434,6 +434,43 @@ displays it in the next window, splitting if only one window is open."
     :follow    #'writing/toc-follow-link
     :help-echo "Jump to this heading in the target document"))
 
+(defconst writing/chat-me-prefix (make-string 20 ?\s)
+  "Visual left-indent applied to #+begin_chat-me blocks (display only, not exported).")
+
+(defun writing/apply-chat-indentation ()
+  "Add visual indentation overlays to every #+begin_chat-me block in the buffer.
+Uses line-prefix and wrap-prefix overlay properties so no buffer content is changed."
+  (remove-overlays (point-min) (point-max) 'writing-chat-me-indent t)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "^#\\+begin_chat-me$" nil t)
+      (let ((start (match-beginning 0)))
+        (when (re-search-forward "^#\\+end_chat-me$" nil t)
+          (let ((ov (make-overlay start (match-end 0))))
+            (overlay-put ov 'writing-chat-me-indent t)
+            (overlay-put ov 'line-prefix writing/chat-me-prefix)
+            (overlay-put ov 'wrap-prefix writing/chat-me-prefix)))))))
+
+(defun writing/insert-chat-block (type)
+  "Insert a chat block of TYPE (\"me\" or \"them\") and place point inside.
+Switches to evil insert mode when evil is active."
+  (insert (format "#+begin_chat-%s\n\n#+end_chat-%s" type type))
+  (forward-line -1)
+  (when (string= type "me")
+    (writing/apply-chat-indentation))
+  (when (bound-and-true-p evil-mode)
+    (evil-insert-state)))
+
+(defun writing/insert-chat-me ()
+  "Insert a #+begin_chat-me ... #+end_chat-me block with point inside."
+  (interactive)
+  (writing/insert-chat-block "me"))
+
+(defun writing/insert-chat-them ()
+  "Insert a #+begin_chat-them ... #+end_chat-them block with point inside."
+  (interactive)
+  (writing/insert-chat-block "them"))
+
 (defun writing/org-mode-setup ()
   (when (string-match-p "_toc\\.org\\'" (or (buffer-file-name) ""))
     (nlinum-mode -1)
@@ -441,6 +478,8 @@ displays it in the next window, splitting if only one window is open."
   (when (writing/stylization-enabled-p)
     (writing/enable-dialogue-highlighting))
   (add-hook 'after-save-hook #'writing/maybe-generate-toc nil t)
+  (add-hook 'after-save-hook #'writing/apply-chat-indentation nil t)
+  (writing/apply-chat-indentation)
   (local-set-key (kbd "C-c w c") #'writing/add-character)
   (local-set-key (kbd "C-c w d") #'writing/add-date)
   (local-set-key (kbd "C-c w D") #'writing/add-date-range)
@@ -450,6 +489,8 @@ displays it in the next window, splitting if only one window is open."
   (local-set-key (kbd "C-c w s") #'writing/toggle-stylization)
   (local-set-key (kbd "C-c w t") #'writing/generate-toc)
   (local-set-key (kbd "C-c w w") #'writing/add-content-warning)
+  (local-set-key (kbd "C-c w m m") #'writing/insert-chat-me)
+  (local-set-key (kbd "C-c w m t") #'writing/insert-chat-them)
   )
 
 (add-hook 'org-mode-hook #'writing/org-mode-setup)
@@ -465,4 +506,7 @@ displays it in the next window, splitting if only one window is open."
   "C-c w s" "toggle stylization"
   "C-c w t" "generate toc"
   "C-c w w" "add chapter content warning"
+  "C-c w m"   "messaging"
+  "C-c w m m" "message from me"
+  "C-c w m t" "message from them"
   )
