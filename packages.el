@@ -226,6 +226,7 @@
 (package! org-hide-drawers)
 (package! org-modern)
 (package! ox-clip)
+(package! ox-epub)
 (package! ox-gfm)
 ; ox-pandoc has a lot of configuration stuff
 ; https://github.com/kawabata/ox-pandoc
@@ -237,6 +238,8 @@
 (package! org-wc)
 (package! wc-mode)
 (package! toc-org) ; table of contents generator
+;; (package! ox-zola :recipe (:host github :repo "gicrisf/ox-zola"))
+(package! ox-zola :recipe (:local-repo "/Users/masukomi/workspace/reference/elisp/ox-zola"))
 
 ; UTILITIES
 
