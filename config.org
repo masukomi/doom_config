@@ -608,17 +608,41 @@ However, that results in the relative numbers in the far left of the gutter, and
 
 
 #+begin_src elisp :tangle config.el
-;; This determines the style of line numbers in effect. If set to `nil', line
-;; numbers are disabled. `t` gets you absolute linu numbers.
-;; For relative line numbers, set this to `relative'.
-;; for both, you gotta get funky.
-(setq display-line-numbers-type 'relative)
-(global-nlinum-mode 1)
-(nlinum-relative-setup-evil)               ;; setup for evil
-(setq nlinum-relative-redisplay-delay 0)   ;; delay
-(setq nlinum-relative-current-symbol "»") ;; or "" for display current line number
-(setq nlinum-relative-offset 0)            ;; 1 if you want 0, 2, 3...
-;; nlinum-relative-on disabled — nlinum now shows absolute numbers (left column)
+;; Single gutter column via nlinum-relative. Shows relative distances for all
+;; lines except the current, which shows "42 »" (absolute position + marker).
+;; display-line-numbers disabled — nlinum-relative handles everything.
+;;
+;; global-nlinum-mode (not global-nlinum-relative-mode) is used deliberately:
+;; the latter creates a per-buffer idle timer for every buffer at startup,
+;; which causes a timer explosion in Doom. nlinum-relative-on starts one timer
+;; for the current buffer; evil hooks lazily extend it to other buffers.
+(setq display-line-numbers-type nil)
+(use-package nlinum-relative
+  :init
+  (setq nlinum-relative-redisplay-delay 0)
+  (setq nlinum-relative-offset 0)
+  :config
+  (setq nlinum-relative--format-function
+        (lambda (line width)
+          (let* ((dist (abs (- line nlinum-relative--current-line)))
+                 (is-current? (eq dist 0))
+                 (str (if is-current?
+                          ;; Use max(width, digits+2) so the column grows once to
+                          ;; fit "N »" then stabilises — never returns width+2
+                          ;; unconditionally, which would cause an infinite resize loop.
+                          (let* ((abs-str (number-to-string line))
+                                 (total-width (max width (+ (length abs-str) 2)))
+                                 (padding (make-string (max 0 (- total-width 2 (length abs-str))) ?\ )))
+                            (concat padding abs-str " »"))
+                        (let ((rel (number-to-string (+ nlinum-relative-offset dist))))
+                          (concat (make-string (max 0 (- width (length rel))) ?\ ) rel)))))
+            (if is-current?
+                (put-text-property 0 (length str) 'face 'nlinum-relative-current-face str)
+              (put-text-property 0 (length str) 'face 'linum str))
+            str)))
+  (nlinum-relative-setup-evil)
+  (global-nlinum-mode 1)
+  (nlinum-relative-on))
 #+end_src
 
 
@@ -1821,6 +1845,10 @@ Packages prefixed with ~ox-*~ are Org-mode eXporter packages. The most common on
   ; enable ox-leanpub functionality
   (use-package! ox-leanpub :after org)
   #+end_src
+- ox-zola
+  #+begin_src elisp
+  (use-package! ox-zola)
+  #+end_src
 - [[https://github.com/emacsmirror/org/blob/master/lisp/ox-md.el][ox-md]]
   exports to standard Markdown
 - [[https://github.com/larstvei/ox-gfm][ox-gfm]]
@@ -2307,6 +2335,31 @@ You can change a surrounding with =cs<old-textobject><new-textobject>= .
 You can delete a surrounding with =ds<textobject>= .
 **** More
 additional things like adding custom pairs is described in detail in the [[https://github.com/emacs-evil/evil-surround#readme][evil-surround readme]]
+** Restoring Vim's =RET= motion in org-mode
+In Vim, =<enter>= in normal mode is a linewise motion (move to the first non-blank
+character of the next line). This makes operators like =d8<enter>= (delete current
+line plus the next 8) and =y8<enter>= (yank them) work as expected.
+
+In Doom Emacs with org-mode, this breaks because Doom binds =RET= in evil's *motion
+state* to its own =+org/dwim-at-point= (a "do what I mean" function that follows
+links, toggles checkboxes, cycles headings, runs src blocks, etc.). Motion-state
+bindings are inherited by normal state, so Doom's binding silently shadows evil's
+=evil-ret= motion everywhere in org buffers.
+
+The fix is to clear that motion-state binding, which hands =RET= back to evil. The
+=dwim-at-point= functionality is then rebound to =go= (mnemonic: *go* / *open*) so
+link-following and the rest still work.
+
+#+begin_src elisp :tangle no
+(after! evil-org
+  ;; Doom binds :m "RET" to +org/dwim-at-point, which propagates into normal
+  ;; state and breaks d8<RET> / y8<RET> / c8<RET> linewise motions.
+  ;; Clearing it here lets evil-ret take back over.
+  (evil-define-key 'motion evil-org-mode-map (kbd "RET") nil)
+  ;; Rebind dwim-at-point so link-following etc. remain accessible.
+  (evil-define-key 'normal evil-org-mode-map (kbd "go") #'+org/dwim-at-point))
+#+end_src
+
 * Denote
 [[https://protesilaos.com/emacs/denote][Denote]] is a personal note-taking system akin to Obsidian. Within emacs its biggest competitor is [[https://www.orgroam.com/][Org-roam]].
 
