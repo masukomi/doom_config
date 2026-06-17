@@ -150,7 +150,9 @@ DATE property, and also sets DAY-OF-WEEK."
                                 (nth 3 parsed)
                                 (nth 5 parsed))))))
       (org-entry-put nil "DATE" date)
-      (org-entry-put nil "DAY-OF-WEEK" dow))))
+      (org-entry-put nil "DAY-OF-WEEK" dow)))
+  (when (org-entry-get nil "RELATIVE-DATE")
+    (org-entry-delete nil "RELATIVE-DATE")))
 
 (defun writing/add-date-range ()
   "Set the DATE-RANGE property on the current heading.
@@ -176,7 +178,19 @@ with no calendar picker or date arithmetic."
                                (days-to-time 1))))
       (let ((org-overriding-default-time next-day))
         (org-entry-put nil "DATE-RANGE"
-                       (concat start "--" (org-read-date)))))))
+                       (concat start "--" (org-read-date)))))
+  (when (org-entry-get nil "RELATIVE-DATE")
+    (org-entry-delete nil "RELATIVE-DATE")))
+
+(defun writing/add-relative-date ()
+  "Set the RELATIVE-DATE property on the current heading, replacing any existing value.
+Prompts for a plain string with no date parsing. Removes DATE, DAY-OF-WEEK,
+and DATE-RANGE properties if present."
+  (interactive)
+  (org-entry-put nil "RELATIVE-DATE" (read-string "Relative date: "))
+  (dolist (prop '("DATE" "DAY-OF-WEEK" "DATE-RANGE"))
+    (when (org-entry-get nil prop)
+      (org-entry-delete nil prop))))
 
 (defun writing/add-notes ()
   "Open the NOTES drawer of the current heading, creating it if absent.
@@ -483,6 +497,7 @@ Switches to evil insert mode when evil is active."
   (local-set-key (kbd "C-c w c") #'writing/add-character)
   (local-set-key (kbd "C-c w d") #'writing/add-date)
   (local-set-key (kbd "C-c w D") #'writing/add-date-range)
+  (local-set-key (kbd "C-c w r") #'writing/add-relative-date)
   (local-set-key (kbd "C-c w l") #'writing/add-location)
   (local-set-key (kbd "C-c w n") #'writing/add-notes)
   (local-set-key (kbd "C-c w p") #'writing/set-point-of-view)
@@ -500,6 +515,7 @@ Switches to evil insert mode when evil is active."
   "C-c w c" "add character"
   "C-c w d" "add date"
   "C-c w D" "add date range"
+  "C-c w r" "add relative date"
   "C-c w l" "add location"
   "C-c w n" "add notes"
   "C-c w p" "set point-of-view"
