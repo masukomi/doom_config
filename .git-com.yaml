@@ -1,28 +1,28 @@
 change-type:
-    type: select
-    destination: title
-    after-string: '] '
-    before-string: '['
-    instructions: What kind of change?
-    modifiable: true
-    options:
-        - fix
-        - add
-        - change
-        - refactor
-        - clean-up
+  destination: title
+  type: select
+  instructions: What kind of change?
+  before-string: "["
+  after-string: "] "
+  options:
+  - fix
+  - add
+  - change
+  - refactor
+  - clean-up
+  modifiable: true
 commit-title:
-    destination: title
-    placeholder: Commit Title
-    type: text
+  destination: title
+  type: text
+  placeholder: Commit Title
 commit-description:
-    allow-empty: true
-    destination: body
-    instructions: Please describe your changes.
-    type: multiline-text
-code-sections:
-  type: multi-select
   destination: body
+  type: multiline-text
+  instructions: Please describe your changes.
+  allow-empty: true
+code-sections:
+  destination: body
+  type: multi-select
   instructions: Which section(s) of the codebase?
   before-string: "\n\nCode Sections: "
   allow-empty: true
@@ -31,5 +31,6 @@ code-sections:
   - ux
   - writing
   - packages
+  - org-mode
   modifiable: true
   record-as: joined-string
