@@ -174,17 +174,41 @@ current buffer's, reload dir-locals."
   (setq winpulse-duration 1.0)
   (winpulse-mode +1))
 
-;; This determines the style of line numbers in effect. If set to `nil', line
-;; numbers are disabled. `t` gets you absolute linu numbers.
-;; For relative line numbers, set this to `relative'.
-;; for both, you gotta get funky.
-(setq display-line-numbers-type 'relative)
-(global-nlinum-mode 1)
-(nlinum-relative-setup-evil)               ;; setup for evil
-(setq nlinum-relative-redisplay-delay 0)   ;; delay
-(setq nlinum-relative-current-symbol "»") ;; or "" for display current line number
-(setq nlinum-relative-offset 0)            ;; 1 if you want 0, 2, 3...
-;; nlinum-relative-on disabled — nlinum now shows absolute numbers (left column)
+;; Single gutter column via nlinum-relative. Shows relative distances for all
+;; lines except the current, which shows "42 »" (absolute position + marker).
+;; display-line-numbers disabled — nlinum-relative handles everything.
+;;
+;; global-nlinum-mode (not global-nlinum-relative-mode) is used deliberately:
+;; the latter creates a per-buffer idle timer for every buffer at startup,
+;; which causes a timer explosion in Doom. nlinum-relative-on starts one timer
+;; for the current buffer; evil hooks lazily extend it to other buffers.
+(setq display-line-numbers-type nil)
+(use-package nlinum-relative
+  :init
+  (setq nlinum-relative-redisplay-delay 0)
+  (setq nlinum-relative-offset 0)
+  :config
+  (setq nlinum-relative--format-function
+        (lambda (line width)
+          (let* ((dist (abs (- line nlinum-relative--current-line)))
+                 (is-current? (eq dist 0))
+                 (str (if is-current?
+                          ;; Use max(width, digits+2) so the column grows once to
+                          ;; fit "N »" then stabilises — never returns width+2
+                          ;; unconditionally, which would cause an infinite resize loop.
+                          (let* ((abs-str (number-to-string line))
+                                 (total-width (max width (+ (length abs-str) 2)))
+                                 (padding (make-string (max 0 (- total-width 2 (length abs-str))) ?\ )))
+                            (concat padding abs-str " »"))
+                        (let ((rel (number-to-string (+ nlinum-relative-offset dist))))
+                          (concat (make-string (max 0 (- width (length rel))) ?\ ) rel)))))
+            (if is-current?
+                (put-text-property 0 (length str) 'face 'nlinum-relative-current-face str)
+              (put-text-property 0 (length str) 'face 'linum str))
+            str)))
+  (nlinum-relative-setup-evil)
+  (global-nlinum-mode 1)
+  (nlinum-relative-on))
 
 ; highlight the contents of the selected parentheses
 (setq show-paren-delay 0)
@@ -267,6 +291,39 @@ current buffer's, reload dir-locals."
 (with-eval-after-load 'which-key
   (which-key-add-key-based-replacements "C-c e e" "emoji"))
 
+;; BEGIN custom stuff to open scratch buffer in new tab -----------------
+(defvar masu/scratch-tab-group nil)
+
+(defun masu/centaur-tabs-buffer-groups ()
+  (if (and masu/scratch-tab-group
+           (string-prefix-p "*doom:scratch" (buffer-name)))
+      (list masu/scratch-tab-group)
+    (centaur-tabs-projectile-buffer-groups)))
+
+;; Doom overrides centaur-tabs-buffer-list-function with +tabs-buffer-list,
+;; which excludes the scratch buffer. Advise it to include scratch when open.
+(defun masu/include-scratch-in-tab-list (orig-fn &rest args)
+  (let ((result (apply orig-fn args))
+        (scratch (get-buffer "*doom:scratch*")))
+    (if (and scratch (not (memq scratch result)))
+        (cons scratch result)
+      result)))
+
+(defun masu/open-scratch-buffer-as-tab ()
+  (interactive)
+  (setq masu/scratch-tab-group
+        (or (ignore-errors (projectile-project-name)) "Misc"))
+  (let ((scratch (condition-case nil
+                     (doom-scratch-buffer)
+                   (error
+                    (save-window-excursion (doom/open-scratch-buffer))
+                    (doom-scratch-buffer)))))
+    (switch-to-buffer scratch)
+    (centaur-tabs-buffer-update-groups)
+    (centaur-tabs-display-update)))
+;; END custom stuff to open scratch buffer in new tab -----------------
+
+
 (use-package centaur-tabs
   :demand
   :init
@@ -283,6 +340,8 @@ current buffer's, reload dir-locals."
   (centaur-tabs-mode t)
   ; group them by which projectile project we're in
   (centaur-tabs-group-by-projectile-project)
+  (setq centaur-tabs-buffer-groups-function #'masu/centaur-tabs-buffer-groups)
+  (advice-add '+tabs-buffer-list :around #'masu/include-scratch-in-tab-list)
   :hook
   (dired-mode . centaur-tabs-local-mode) ; disable in dired
   :bind
@@ -750,8 +809,18 @@ See options: `dired-hide-details-hide-symlink-targets',
   org-log-done t
 )
 
+(after! org
+  (advice-add 'org-ctrl-c-minus :around
+              (lambda (orig-fn &rest args)
+                (let ((was-active (region-active-p)))
+                  (apply orig-fn args)
+                  (when was-active
+                    (setq deactivate-mark nil))))))
+
   ; enable ox-leanpub functionality
   (use-package! ox-leanpub :after org)
+
+  (use-package! ox-zola)
 
 (with-eval-after-load 'ox
   (require 'ox-hugo)

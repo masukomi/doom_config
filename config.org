@@ -842,6 +842,39 @@ Custom emoji picker using =custom/masu-emojis.el= which includes 1800+ unicode e
 [[https://github.com/ema2159/centaur-tabs#readme][Centaur Tabs]]
 
 #+begin_src elisp :tangle config.el
+;; BEGIN custom stuff to open scratch buffer in new tab -----------------
+(defvar masu/scratch-tab-group nil)
+
+(defun masu/centaur-tabs-buffer-groups ()
+  (if (and masu/scratch-tab-group
+           (string-prefix-p "*doom:scratch" (buffer-name)))
+      (list masu/scratch-tab-group)
+    (centaur-tabs-projectile-buffer-groups)))
+
+;; Doom overrides centaur-tabs-buffer-list-function with +tabs-buffer-list,
+;; which excludes the scratch buffer. Advise it to include scratch when open.
+(defun masu/include-scratch-in-tab-list (orig-fn &rest args)
+  (let ((result (apply orig-fn args))
+        (scratch (get-buffer "*doom:scratch*")))
+    (if (and scratch (not (memq scratch result)))
+        (cons scratch result)
+      result)))
+
+(defun masu/open-scratch-buffer-as-tab ()
+  (interactive)
+  (setq masu/scratch-tab-group
+        (or (ignore-errors (projectile-project-name)) "Misc"))
+  (let ((scratch (condition-case nil
+                     (doom-scratch-buffer)
+                   (error
+                    (save-window-excursion (doom/open-scratch-buffer))
+                    (doom-scratch-buffer)))))
+    (switch-to-buffer scratch)
+    (centaur-tabs-buffer-update-groups)
+    (centaur-tabs-display-update)))
+;; END custom stuff to open scratch buffer in new tab -----------------
+
+
 (use-package centaur-tabs
   :demand
   :init
@@ -858,6 +891,8 @@ Custom emoji picker using =custom/masu-emojis.el= which includes 1800+ unicode e
   (centaur-tabs-mode t)
   ; group them by which projectile project we're in
   (centaur-tabs-group-by-projectile-project)
+  (setq centaur-tabs-buffer-groups-function #'masu/centaur-tabs-buffer-groups)
+  (advice-add '+tabs-buffer-list :around #'masu/include-scratch-in-tab-list)
   :hook
   (dired-mode . centaur-tabs-local-mode) ; disable in dired
   :bind
@@ -866,7 +901,9 @@ Custom emoji picker using =custom/masu-emojis.el= which includes 1800+ unicode e
   ;; Add C-c t c to close current tab (not provided by default)
   (:map centaur-tabs-mode-map
         ("C-c t c" . centaur-tabs--kill-this-buffer-dont-ask)))
+
 #+end_src
+
 
 *Note*
 You /can/ [[https://github.com/ema2159/centaur-tabs?tab=readme-ov-file#buffer-groups][modify the way buffers are grouped]].
@@ -1830,7 +1867,18 @@ Org-agenda's todo functionality is pretty cool though. The last line of this blo
   org-log-done t
 )
 #+end_src
-
+** General Behavior Mods
+*** Stop deselecting after item type modification
+Makes it hard to cycle through item types to get to the one you want if it keeps deselecting.
+#+begin_src elisp
+(after! org
+  (advice-add 'org-ctrl-c-minus :around
+              (lambda (orig-fn &rest args)
+                (let ((was-active (region-active-p)))
+                  (apply orig-fn args)
+                  (when was-active
+                    (setq deactivate-mark nil))))))
+#+end_src
 ** Exporters
 Packages prefixed with ~ox-*~ are Org-mode eXporter packages. The most common ones are [[https://orgmode.org/worg/exporters/ox-overview.html][listed on the Org-mode site]] but there are quite a few others. Here are the ones I use.
 
