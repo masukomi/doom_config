@@ -178,7 +178,7 @@ with no calendar picker or date arithmetic."
                                (days-to-time 1))))
       (let ((org-overriding-default-time next-day))
         (org-entry-put nil "DATE-RANGE"
-                       (concat start "--" (org-read-date)))))
+                       (concat start "--" (org-read-date))))))
   (when (org-entry-get nil "RELATIVE-DATE")
     (org-entry-delete nil "RELATIVE-DATE")))
 
