@@ -83,12 +83,22 @@ the current buffer's directory). Returns nil if FILE-PATH does not exist."
               (funcall ids-from buf))))
       (funcall ids-from (current-buffer)))))
 
+(defvar vertico-preselect) ; declaration only, so the let-binding below is dynamic
+
 (defun writing/read-entity-input (prompt prop-name &optional file-path)
   "Prompt with PROMPT, offering existing PROP-NAME values for completion.
 If FILE-PATH is provided, completions are drawn from that file rather than
 the current buffer.
-Returns (ID . INPUT) where ID is the derived entity ID and INPUT is what the user typed."
-  (let ((input (string-trim (completing-read prompt (writing/known-ids-for-property prop-name file-path) nil nil))))
+
+Completion is prefix-only and RET accepts exactly what was typed, so a new
+name that is a substring of an existing one (e.g. \"lex\" alongside \"alex\")
+can be entered. Use TAB or the arrow keys to pick an existing entry.
+
+Returns (ID . INPUT) where ID is the derived entity ID and INPUT is what
+the user typed."
+  (let* ((completion-styles '(basic))
+         (vertico-preselect 'prompt)
+         (input (string-trim (completing-read prompt (writing/known-ids-for-property prop-name file-path) nil nil))))
     (when (string-empty-p input)
       (user-error "Name cannot be empty"))
     (cons (writing/make-entity-id input) input)))

@@ -21,6 +21,10 @@ active in =org-mode= buffers. Press =C-c w= to see the full list via which-key.
 
 Adds a character ID to the =CHARACTERS= property of the current heading. Presents existing character IDs from the buffer as completion candidates. You may enter an existing ID or a new display name; new names are converted to a slug-style ID (lowercased, punctuation replaced with hyphens).
 
+Completion is prefix-only, and =RET= always accepts exactly what you typed. To
+pick an existing candidate, press =TAB= or select it with the arrow keys first.
+This is what lets you add a new =lex= to a story that already has an =alex=.
+
 Multiple characters are stored using org's =PROPERTY+= convention:
 - First character → =:CHARACTERS: some-id=
 - Additional characters → =:CHARACTERS+: another-id=
