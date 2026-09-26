@@ -164,6 +164,38 @@ current buffer's, reload dir-locals."
 
 (setq doom-theme 'doom-gruvbox)
 
+(defvar masukomi/prose-theme 'poet
+  "Theme to use when the current buffer is one of `masukomi/prose-modes'.")
+
+(defvar masukomi/prose-modes '(org-mode markdown-mode)
+  "Major modes that should be displayed with `masukomi/prose-theme'.
+Derived modes count, so e.g. gfm-mode counts as markdown-mode.")
+
+(defvar masukomi/default-theme 'doom-gruvbox
+  "Theme to use in every other major mode.")
+
+(defun masukomi/theme-for-buffer (buffer)
+  "Return the theme BUFFER should be displayed with."
+  (if (with-current-buffer buffer (seq-some #'derived-mode-p masukomi/prose-modes))
+      masukomi/prose-theme
+    masukomi/default-theme))
+
+(defun masukomi/sync-theme-to-buffer (&rest _)
+  "Load the theme appropriate to the selected window's buffer.
+Does nothing if that theme is already active."
+  (unless (minibufferp)
+    (let ((wanted (masukomi/theme-for-buffer (window-buffer (selected-window)))))
+      (unless (eq wanted (car custom-enabled-themes))
+        (mapc #'disable-theme custom-enabled-themes)
+        (load-theme wanted t)
+        (setq doom-theme wanted)))))
+
+;; Fires when a window shows a different buffer, when focus moves to another
+;; window, and when a buffer's major mode changes (e.g. markdown-mode turning on).
+(add-hook 'window-buffer-change-functions #'masukomi/sync-theme-to-buffer)
+(add-hook 'window-selection-change-functions #'masukomi/sync-theme-to-buffer)
+(add-hook 'after-change-major-mode-hook #'masukomi/sync-theme-to-buffer)
+
 (custom-set-faces!
   '(cursor :background "#AA00FF") ; doesn't seem to work
   '(cursor :foreground "#FFFFFF")

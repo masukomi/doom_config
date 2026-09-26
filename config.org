@@ -555,6 +555,52 @@ There's a [[https://github.com/doomemacs/themes][theme megapack]] which links to
 (setq doom-theme 'doom-gruvbox)
 #+end_src
 
+*** Per-mode themes
+Emacs themes are /global/, not per-buffer. There's no way to have gruvbox in one window and [[https://github.com/kunalb/poet][poet]] in another at the same time. What we /can/ do is swap the active theme whenever the buffer we're looking at changes, so it /feels/ like the prose modes have their own theme.
+
+Which modes count as "prose" lives in ~masukomi/prose-modes~ — org and markdown to start with. Add to that list to extend it.
+
+The tradeoffs of this approach:
+- Every window on screen restyles at once, not just the prose buffer.
+- There's a small delay (~0.1–0.3s) each time the theme swaps, because ~load-theme~ has to recompute every face.
+- Split windows with prose on one side and code on the other will flicker as you move between them.
+
+~custom-set-faces!~ tweaks elsewhere in this file survive the swap — Doom re-applies them on every theme load.
+
+#+begin_src elisp :tangle config.el
+(defvar masukomi/prose-theme 'poet
+  "Theme to use when the current buffer is one of `masukomi/prose-modes'.")
+
+(defvar masukomi/prose-modes '(org-mode markdown-mode)
+  "Major modes that should be displayed with `masukomi/prose-theme'.
+Derived modes count, so e.g. gfm-mode counts as markdown-mode.")
+
+(defvar masukomi/default-theme 'doom-gruvbox
+  "Theme to use in every other major mode.")
+
+(defun masukomi/theme-for-buffer (buffer)
+  "Return the theme BUFFER should be displayed with."
+  (if (with-current-buffer buffer (seq-some #'derived-mode-p masukomi/prose-modes))
+      masukomi/prose-theme
+    masukomi/default-theme))
+
+(defun masukomi/sync-theme-to-buffer (&rest _)
+  "Load the theme appropriate to the selected window's buffer.
+Does nothing if that theme is already active."
+  (unless (minibufferp)
+    (let ((wanted (masukomi/theme-for-buffer (window-buffer (selected-window)))))
+      (unless (eq wanted (car custom-enabled-themes))
+        (mapc #'disable-theme custom-enabled-themes)
+        (load-theme wanted t)
+        (setq doom-theme wanted)))))
+
+;; Fires when a window shows a different buffer, when focus moves to another
+;; window, and when a buffer's major mode changes (e.g. markdown-mode turning on).
+(add-hook 'window-buffer-change-functions #'masukomi/sync-theme-to-buffer)
+(add-hook 'window-selection-change-functions #'masukomi/sync-theme-to-buffer)
+(add-hook 'after-change-major-mode-hook #'masukomi/sync-theme-to-buffer)
+#+end_src
+
 *** And cursors
 Doom Emacs sets "faces" differently than normal emacs. I don't really understand why, but there are two methods to use ~custom-set-faces!~ and ~set-face-attribute~
 

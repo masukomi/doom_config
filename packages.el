@@ -67,6 +67,9 @@
 (package! undo-tree)
 
 ; UI STUFF
+;
+; a theme specifically for writing prose
+(package! poet-theme)
 
 ;; normally centaur-tabs is included via "tabs" in init.el
 ;; However, there's a bug in it that I have fixed locally.
