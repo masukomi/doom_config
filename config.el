@@ -159,8 +159,12 @@ current buffer's, reload dir-locals."
 (setq neo-autorefresh t)
 
 (setq doom-font (font-spec :family "JetBrains Mono Medium" :size 20)
-      doom-variable-pitch-font (font-spec :family "Monaco")
+      doom-variable-pitch-font (font-spec :family "IBM Plex Serif")
       doom-big-font (font-spec :family "JetBrains Mono Medium"))
+
+(add-hook 'text-mode-hook
+           (lambda ()
+            (variable-pitch-mode 1)))
 
 (setq doom-theme 'doom-gruvbox)
 
@@ -843,6 +847,13 @@ See options: `dired-hide-details-hide-symlink-targets',
 
 (after! org
   (advice-add 'org-ctrl-c-minus :around
+              (lambda (orig-fn &rest args)
+                (let ((was-active (region-active-p)))
+                  (apply orig-fn args)
+                  (when was-active
+                    (setq deactivate-mark nil)))))
+
+  (advice-add 'org-cycle-list-bullet :around
               (lambda (orig-fn &rest args)
                 (let ((was-active (region-active-p)))
                   (apply orig-fn args)

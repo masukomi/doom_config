@@ -542,8 +542,12 @@ work as a stopgap:
 
 #+begin_src elisp :tangle config.el
 (setq doom-font (font-spec :family "JetBrains Mono Medium" :size 20)
-      doom-variable-pitch-font (font-spec :family "Monaco")
+      doom-variable-pitch-font (font-spec :family "IBM Plex Serif")
       doom-big-font (font-spec :family "JetBrains Mono Medium"))
+
+(add-hook 'text-mode-hook
+           (lambda ()
+            (variable-pitch-mode 1)))
 #+end_src
 
 *** Themes matter too
@@ -1923,7 +1927,15 @@ Makes it hard to cycle through item types to get to the one you want if it keeps
                 (let ((was-active (region-active-p)))
                   (apply orig-fn args)
                   (when was-active
+                    (setq deactivate-mark nil)))))
+
+  (advice-add 'org-cycle-list-bullet :around
+              (lambda (orig-fn &rest args)
+                (let ((was-active (region-active-p)))
+                  (apply orig-fn args)
+                  (when was-active
                     (setq deactivate-mark nil))))))
+  
 #+end_src
 ** Exporters
 Packages prefixed with ~ox-*~ are Org-mode eXporter packages. The most common ones are [[https://orgmode.org/worg/exporters/ox-overview.html][listed on the Org-mode site]] but there are quite a few others. Here are the ones I use.
