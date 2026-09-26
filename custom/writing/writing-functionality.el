@@ -5,6 +5,10 @@
   '((t :foreground "#9ab9e2"))
   "Face for quoted dialogue in prose.")
 
+(defface writing/bracketed-face
+  '((t :foreground "#E0A458"))
+  "Face for bracketed text in prose.")
+
 (setq org-export-with-drawers '(not "NOTES"))
 
 (defun writing/add-to-property (prop-name value)
@@ -240,51 +244,64 @@ completion and ensures the character exists in characters.org."
 ; #+WRITING_STYLIZATION: t
 ;
 ; You can toggle this with the following key combo: C-c w s
+(defun writing/delimited-font-lock-matcher (open close limit)
+  "Font-lock matcher for text delimited by the OPEN and CLOSE strings.
+Handles multi-paragraph spans per English grammar convention:
+intermediate paragraphs end without a closing delimiter when the next
+paragraph begins with an opening one.  Each such paragraph is a
+separate match.
+
+Matches from an opening delimiter to either:
+- a closing delimiter, or
+- the newline before a blank-line/opening-delimiter continuation
+  (\\n\\n followed by OPEN)."
+  (let ((end-re (concat (regexp-quote close) "\\|\n\n" (regexp-quote open))))
+    (catch 'found
+      (while (search-forward open limit t)
+        (let ((start (match-beginning 0)))
+          (unless (eolp) ; a delimiter at end of line never opens a span (e.g. 4'2")
+            (when (re-search-forward end-re limit t)
+              (let* ((mstart (match-beginning 0))
+                     (mend   (match-end 0))
+                     (continuation (> (- mend mstart) (length close))))
+                (if continuation
+                    ;; Highlight up to (not including) the \n\n, then rewind so
+                    ;; the delimiter opening the next paragraph is found next
+                    ;; iteration.
+                    (progn
+                      (set-match-data (list start mstart))
+                      (goto-char mstart))
+                  (set-match-data (list start mend)))
+                (throw 'found t))))))
+      nil)))
+
 (defun writing/dialogue-font-lock-matcher (limit)
-  "Font-lock matcher for quoted dialogue.
-Handles multi-paragraph speeches per English grammar convention:
-intermediate paragraphs end without a closing quote when the next
-paragraph begins with one.  Each such paragraph is a separate match.
+  "Font-lock matcher for double-quoted dialogue, searching up to LIMIT."
+  (writing/delimited-font-lock-matcher "\"" "\"" limit))
 
-Matches from an opening double-quote to either:
-- a closing double-quote, or
-- the newline before a blank-line/opening-quote continuation (\\n\\n\")."
-  (catch 'found
-    (while (search-forward "\"" limit t)
-      (let ((start (match-beginning 0)))
-        (unless (eolp) ; " at end of line is never an opening quote (e.g. 4'2")
-          (when (re-search-forward "\"\\|\n\n\"" limit t)
-            (let* ((mstart (match-beginning 0))
-                   (mend   (match-end 0))
-                   (continuation (> (- mend mstart) 1)))
-              (if continuation
-                  ;; Highlight up to (not including) the \n\n, then rewind so
-                  ;; the " that opens the next paragraph is found next iteration.
-                  (progn
-                    (set-match-data (list start mstart))
-                    (goto-char mstart))
-                (set-match-data (list start mend)))
-              (throw 'found t))))))
-    nil))
+(defun writing/bracketed-font-lock-matcher (limit)
+  "Font-lock matcher for square-bracketed text, searching up to LIMIT."
+  (writing/delimited-font-lock-matcher "[" "]" limit))
 
-(defconst writing/font-lock-dialogue-keywords
-  '((writing/dialogue-font-lock-matcher (0 'writing/dialogue-face prepend)))
-  "Font-lock keyword spec for dialogue highlighting.")
+(defconst writing/font-lock-stylization-keywords
+  '((writing/dialogue-font-lock-matcher (0 'writing/dialogue-face prepend))
+    (writing/bracketed-font-lock-matcher (0 'writing/bracketed-face prepend)))
+  "Font-lock keyword spec for stylization highlighting.")
 
 (defun writing/stylization-enabled-p ()
   "Return t if #+WRITING_STYLIZATION: t is present in the current buffer."
   (string= "t" (cadr (assoc "WRITING_STYLIZATION"
                              (org-collect-keywords '("WRITING_STYLIZATION"))))))
 
-(defun writing/enable-dialogue-highlighting ()
-  "Enable dialogue font-lock highlighting in the current buffer."
+(defun writing/enable-stylization-highlighting ()
+  "Enable stylization font-lock highlighting in the current buffer."
   (setq-local font-lock-multiline t)
-  (font-lock-add-keywords nil writing/font-lock-dialogue-keywords 'append)
+  (font-lock-add-keywords nil writing/font-lock-stylization-keywords 'append)
   (font-lock-flush))
 
-(defun writing/disable-dialogue-highlighting ()
-  "Disable dialogue font-lock highlighting in the current buffer."
-  (font-lock-remove-keywords nil writing/font-lock-dialogue-keywords)
+(defun writing/disable-stylization-highlighting ()
+  "Disable stylization font-lock highlighting in the current buffer."
+  (font-lock-remove-keywords nil writing/font-lock-stylization-keywords)
   (font-lock-flush))
 
 (defun writing/set-stylization-keyword (value)
@@ -304,10 +321,10 @@ Matches from an opening double-quote to either:
   (if (writing/stylization-enabled-p)
       (progn
         (writing/set-stylization-keyword "nil")
-        (writing/disable-dialogue-highlighting)
+        (writing/disable-stylization-highlighting)
         (message "Writing stylization disabled"))
     (writing/set-stylization-keyword "t")
-    (writing/enable-dialogue-highlighting)
+    (writing/enable-stylization-highlighting)
     (message "Writing stylization enabled")))
 
 ; TOC STUFF
@@ -490,7 +507,7 @@ Switches to evil insert mode when evil is active."
     (nlinum-mode -1)
     (display-line-numbers-mode -1))
   (when (writing/stylization-enabled-p)
-    (writing/enable-dialogue-highlighting))
+    (writing/enable-stylization-highlighting))
   (add-hook 'after-save-hook #'writing/maybe-generate-toc nil t)
   (add-hook 'after-save-hook #'writing/apply-chat-indentation nil t)
   (writing/apply-chat-indentation)

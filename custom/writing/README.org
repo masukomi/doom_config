@@ -80,20 +80,24 @@ NOTE: assumes there can only be one POV per heading.
 
 ** =C-c w s= — Toggle Stylization
 
-Toggles dialogue highlighting on and off for the current buffer.
+Toggles prose highlighting on and off for the current buffer.
 
 - Adds =#+WRITING_STYLIZATION: t= to the file keywords when enabling, or
   sets it to =nil= when disabling, so the setting persists across sessions.
 - When enabled, text within double quotes is highlighted using
-  =writing/dialogue-face= (foreground colour only, so bold/italic/underline
-  inside dialogue are preserved).
+  =writing/dialogue-face=, and text within square brackets using
+  =writing/bracketed-face= (foreground colour only, so bold/italic/underline
+  inside the highlighted text are preserved). For example, in
+  =[These words are highlighted] these words are not.=
 - Handles the English-grammar convention for multi-paragraph dialogue: when
   a speaker's speech spans multiple paragraphs, only the final paragraph
   has a closing quote. Each paragraph is highlighted as a separate region.
-- A closing quote at the end of a line (e.g. =4'2"=) is never treated as an
-  opening quote.
+  Square brackets follow the same rule.
+- A closing delimiter at the end of a line (e.g. =4'2"=) is never treated as
+  an opening one.
 
-Customise the highlight colour with =M-x customize-face RET writing/dialogue-face=.
+Customise the highlight colours with =M-x customize-face RET
+writing/dialogue-face= and =M-x customize-face RET writing/bracketed-face=.
 
 ** =C-c w t= — Generate Table of Contents
 
