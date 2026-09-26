@@ -159,8 +159,8 @@ current buffer's, reload dir-locals."
 (setq neo-autorefresh t)
 
 (setq doom-font (font-spec :family "JetBrains Mono Medium" :size 20)
-      doom-variable-pitch-font (font-spec :family "IBM Plex Serif")
-      doom-big-font (font-spec :family "JetBrains Mono Medium"))
+      doom-variable-pitch-font (font-spec :family "IBM Plex Serif" :size 22)
+      doom-big-font (font-spec :family "JetBrains Mono Medium" :size 20))
 
 (add-hook 'text-mode-hook
            (lambda ()
@@ -178,11 +178,44 @@ Derived modes count, so e.g. gfm-mode counts as markdown-mode.")
 (defvar masukomi/default-theme 'doom-gruvbox
   "Theme to use in every other major mode.")
 
+(defvar-local masukomi/theme-override nil
+  "Buffer-local theme choice, `prose', `code', or nil for automatic.
+Set by the manual toggle in buffers that have nowhere to persist a
+PINNED_THEME keyword. Lasts for the life of the buffer only.")
+
+(defun masukomi/org-pinned-theme ()
+  "Return `prose', `code', or nil per this buffer's PINNED_THEME keyword.
+Only the preamble — everything before the first headline — is examined, so a
+=#+PINNED_THEME:= mentioned inside a source block or example won't count."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (let ((case-fold-search t)
+            (limit (save-excursion
+                     (goto-char (point-min))
+                     (re-search-forward "^\\*+[ \t]" nil t))))
+        (goto-char (point-min))
+        (when (re-search-forward "^[ \t]*#\\+PINNED_THEME:[ \t]*\\(\\S-+\\)" limit t)
+          (let ((value (downcase (match-string 1))))
+            (cond ((string= value "prose") 'prose)
+                  ((string= value "code") 'code))))))))
+
+(defun masukomi/theme-kind-for-buffer (buffer)
+  "Return `prose' or `code' for BUFFER.
+A buffer-local override wins, then an org PINNED_THEME keyword, then
+`masukomi/prose-modes'."
+  (with-current-buffer buffer
+    (or masukomi/theme-override
+        (and (derived-mode-p 'org-mode) (masukomi/org-pinned-theme))
+        (if (seq-some #'derived-mode-p masukomi/prose-modes) 'prose 'code))))
+
+(defun masukomi/theme-for-kind (kind)
+  "Return the theme that KIND (`prose' or `code') maps to."
+  (if (eq kind 'prose) masukomi/prose-theme masukomi/default-theme))
+
 (defun masukomi/theme-for-buffer (buffer)
   "Return the theme BUFFER should be displayed with."
-  (if (with-current-buffer buffer (seq-some #'derived-mode-p masukomi/prose-modes))
-      masukomi/prose-theme
-    masukomi/default-theme))
+  (masukomi/theme-for-kind (masukomi/theme-kind-for-buffer buffer)))
 
 (defun masukomi/sync-theme-to-buffer (&rest _)
   "Load the theme appropriate to the selected window's buffer.
@@ -199,6 +232,56 @@ Does nothing if that theme is already active."
 (add-hook 'window-buffer-change-functions #'masukomi/sync-theme-to-buffer)
 (add-hook 'window-selection-change-functions #'masukomi/sync-theme-to-buffer)
 (add-hook 'after-change-major-mode-hook #'masukomi/sync-theme-to-buffer)
+
+(defun masukomi/org-set-pinned-theme (kind)
+  "Write KIND (`prose' or `code') into this buffer's PINNED_THEME keyword.
+Updates the keyword in place if the preamble already has one, otherwise adds it
+below the leading block of =#+KEY: value= lines."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (let ((case-fold-search t)
+            (keyword (format "#+PINNED_THEME: %s" kind))
+            (limit (save-excursion
+                     (goto-char (point-min))
+                     (re-search-forward "^\\*+[ \t]" nil t))))
+        (goto-char (point-min))
+        (if (re-search-forward "^[ \t]*#\\+PINNED_THEME:.*$" limit t)
+            (replace-match keyword t t)
+          ;; Skip past any keywords already at the top so we land beneath
+          ;; #+title and friends rather than above them.
+          (goto-char (point-min))
+          (while (looking-at "^[ \t]*#\\+[A-Za-z_]+:")
+            (forward-line 1))
+          (insert keyword "\n"))))))
+
+(defun masukomi/set-theme-kind (kind)
+  "Display the current buffer with KIND (`prose' or `code').
+In org-mode this records the choice as a PINNED_THEME keyword; elsewhere it is
+remembered for this buffer only."
+  (if (derived-mode-p 'org-mode)
+      (progn
+        (masukomi/org-set-pinned-theme kind)
+        ;; The keyword is now authoritative, so drop any stale override.
+        (setq masukomi/theme-override nil))
+    (setq masukomi/theme-override kind))
+  (masukomi/sync-theme-to-buffer)
+  (message "Theme: %s (%s)" kind (masukomi/theme-for-kind kind)))
+
+(defun masukomi/use-prose-theme ()
+  "Display the current buffer with `masukomi/prose-theme'."
+  (interactive)
+  (masukomi/set-theme-kind 'prose))
+
+(defun masukomi/use-code-theme ()
+  "Display the current buffer with `masukomi/default-theme'."
+  (interactive)
+  (masukomi/set-theme-kind 'code))
+
+(map! (:prefix ("C-c v" . "masukomi")
+       (:prefix ("t" . "themes")
+        :desc "Prose theme" "p" #'masukomi/use-prose-theme
+        :desc "Code theme"  "c" #'masukomi/use-code-theme)))
 
 (custom-set-faces!
   '(cursor :background "#AA00FF") ; doesn't seem to work
