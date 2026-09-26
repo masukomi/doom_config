@@ -501,6 +501,36 @@ Uses line-prefix and wrap-prefix overlay properties so no buffer content is chan
             (overlay-put ov 'line-prefix writing/chat-me-prefix)
             (overlay-put ov 'wrap-prefix writing/chat-me-prefix)))))))
 
+(defconst writing/chat-content-indent " "
+  "Prefix added to chat block content lines.
+A content line beginning at column 0 with an asterisk followed by anything
+with whitespace syntax -- including a zero-width space -- satisfies the
+headline branch of org's block-fontification search (see
+`org-fontify-meta-lines-and-blocks-1').  Org then concludes a headline
+interrupted the block, never finds the #+end_ line, and fontifies it as
+`org-meta-line' instead of `org-block-end-line'; org-element likewise stops
+seeing a complete block.  Indenting the content prevents that.  One space is
+enough, and because org requires a literal space or tab after a list bullet,
+a zero-width space after the asterisk keeps the line a paragraph rather than
+turning it into a list item.")
+
+(defun writing/indent-chat-content (beg end)
+  "Prefix lines between BEG and END with `writing/chat-content-indent'.
+Blank lines and already-indented lines are left alone.  BEG should be at the
+beginning of a line.  Returns the number of lines changed."
+  (let ((count 0)
+        (limit (copy-marker end)))
+    (save-excursion
+      (goto-char beg)
+      (while (< (point) limit)
+        (unless (or (looking-at "[ \t]*$")
+                    (looking-at "[ \t]"))
+          (insert writing/chat-content-indent)
+          (setq count (1+ count)))
+        (forward-line 1)))
+    (set-marker limit nil)
+    count))
+
 (defun writing/wrap-region-in-chat-block (type)
   "Wrap the active region in a chat block of TYPE (\"me\" or \"them\").
 The region is widened to whole lines so the #+begin_/#+end_ markers land at
@@ -519,6 +549,11 @@ line following the #+end_ line, with the mark deactivated."
       (goto-char beg)
       (setq beg (line-beginning-position)))
     (deactivate-mark)
+    ;; Indent the content first, tracking END through the insertions.
+    (let ((end-marker (copy-marker end)))
+      (writing/indent-chat-content beg end-marker)
+      (setq end (marker-position end-marker))
+      (set-marker end-marker nil))
     ;; Insert the end marker first so BEG stays valid.
     (goto-char end)
     (insert (format "\n#+end_chat-%s" type))
@@ -539,14 +574,55 @@ evil insert mode when evil is active."
   (let ((wrapped (use-region-p)))
     (if wrapped
         (writing/wrap-region-in-chat-block type)
-      (insert (format "#+begin_chat-%s\n\n#+end_chat-%s" type type))
-      (forward-line -1))
+      (insert (format "#+begin_chat-%s\n%s\n#+end_chat-%s"
+                      type writing/chat-content-indent type))
+      (forward-line -1)
+      (end-of-line))
     (when (string= type "me")
       (writing/apply-chat-indentation))
     (when (bound-and-true-p evil-mode)
       (if wrapped
           (when (fboundp 'evil-normal-state) (evil-normal-state))
         (evil-insert-state)))))
+
+(defun writing/normalize-chat-blocks ()
+  "Indent the content lines of every chat block in the buffer.
+Fixes blocks written before content indentation was applied.  See
+`writing/chat-content-indent' for why the indentation matters.  Blank and
+already-indented lines are left alone, so running this repeatedly is safe."
+  (interactive)
+  (let ((lines 0)
+        (blocks 0))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "^#\\+begin_chat-\\(me\\|them\\)$" nil t)
+        (let* ((type (match-string 1))
+               (content-start (line-beginning-position 2))
+               (block-end (save-excursion
+                            (when (re-search-forward
+                                   (format "^#\\+end_chat-%s$" type) nil t)
+                              (match-beginning 0)))))
+          (if (null block-end)
+              ;; Unterminated block: leave it alone and keep scanning.
+              (forward-line 1)
+            (setq blocks (1+ blocks))
+            (let ((end-marker (copy-marker block-end)))
+              (setq lines (+ lines (writing/indent-chat-content
+                                    content-start end-marker)))
+              (goto-char end-marker)
+              (set-marker end-marker nil))))))
+    (when (called-interactively-p 'interactive)
+      (message "Indented %d line%s in %d chat block%s"
+               lines (if (= lines 1) "" "s")
+               blocks (if (= blocks 1) "" "s")))
+    lines))
+
+(defun writing/maybe-normalize-chat-blocks ()
+  "Normalize chat blocks on save when #+WRITING_NORMALIZE_CHAT_ON_SAVE: t is set."
+  (when (string= "t" (cadr (assoc "WRITING_NORMALIZE_CHAT_ON_SAVE"
+                                  (org-collect-keywords
+                                   '("WRITING_NORMALIZE_CHAT_ON_SAVE")))))
+    (writing/normalize-chat-blocks)))
 
 (defun writing/insert-chat-me ()
   "Insert a #+begin_chat-me ... #+end_chat-me block with point inside."
@@ -564,6 +640,7 @@ evil insert mode when evil is active."
     (display-line-numbers-mode -1))
   (when (writing/stylization-enabled-p)
     (writing/enable-stylization-highlighting))
+  (add-hook 'before-save-hook #'writing/maybe-normalize-chat-blocks nil t)
   (add-hook 'after-save-hook #'writing/maybe-generate-toc nil t)
   (add-hook 'after-save-hook #'writing/apply-chat-indentation nil t)
   (writing/apply-chat-indentation)

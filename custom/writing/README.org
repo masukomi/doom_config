@@ -167,8 +167,9 @@ hey, you around?
 
 Behaviour depends on whether there is a selection:
 
-- *With no selection* — inserts an empty block and places point on the blank
-  line between the markers, switching to evil insert state when evil is active.
+- *With no selection* — inserts an empty block and places point on the indented
+  content line between the markers, switching to evil insert state when evil is
+  active.
 - *With a selection* (typically an evil =VISUAL LINE= selection) — wraps the
   selected text: the =#+begin_= line goes on a new line before it, the =#+end_=
   line on a new line after it. The selection is widened to whole lines, so the
@@ -184,6 +185,39 @@ The indent is applied when an org buffer opens, whenever a =chat-me= block is
 inserted, and on every save. It relies on the markers sitting alone at the start
 of their lines; an indented or trailing-whitespace marker line will silently not
 be indented.
+
+*** Content lines are indented by one space
+
+Chat block content is written with a single leading space. This is load-bearing,
+not cosmetic.
+
+Org looks for a block's =#+end_= line with a search that stops at whichever
+comes first: the =#+end_= line, or a line that looks like a headline — one or
+more asterisks followed by a character with /whitespace syntax/. A zero-width
+space has whitespace syntax. So a line like this, at column 0:
+
+#+begin_example
+*​cautiously re-enters the conversation​*
+#+end_example
+
+makes org conclude that a headline interrupted the block. It never finds the
+=#+end_= line, and fontifies it as =org-meta-line= instead of
+=org-block-end-line= — the visible symptom being an =#+end_chat-them= line in
+the wrong face. =org-element= also stops seeing a complete block, which affects
+export and anything walking the document tree.
+
+Indenting the content by one space prevents this, because the headline pattern
+is anchored at the start of the line. One space is sufficient. Note that a
+zero-width space after the asterisk is also what keeps the indented line a
+paragraph rather than an org list item, since org requires a literal space or
+tab after a list bullet.
+
+Existing documents written before this can be repaired with =M-x
+writing/normalize-chat-blocks=, which indents the content of every chat block in
+the buffer. Blank and already-indented lines are left alone, so it is safe to
+run repeatedly. To have it run automatically, add
+=#+WRITING_NORMALIZE_CHAT_ON_SAVE: t= to the file; normalization then happens in
+=before-save-hook= so the change is written to disk.
 
 * TOC File Usage
 
@@ -208,12 +242,13 @@ heading) and control optional behavior.
 ** Story Document
 All of these are optional.
 
-| Keyword                              | File  | Effect                                               |
-|--------------------------------------+-------+------------------------------------------------------|
-| =#+WRITING_STYLIZATION: t=           | story | Enable dialogue highlighting in this buffer          |
-| =#+WRITING_FICTIONAL_DATES: t=       | story | Use plain text date entry instead of calendar picker |
-| =#+WRITING_GENERATE_TOC_ON_SAVE: t=  | story | Regenerate the TOC file every time the file is saved |
-| =#+WRITING_TOC_TARGET: filename.org= | toc   | The story file this TOC file points to               |
+| Keyword                               | File  | Effect                                               |
+|---------------------------------------+-------+------------------------------------------------------|
+| =#+WRITING_STYLIZATION: t=            | story | Enable dialogue highlighting in this buffer          |
+| =#+WRITING_FICTIONAL_DATES: t=        | story | Use plain text date entry instead of calendar picker |
+| =#+WRITING_GENERATE_TOC_ON_SAVE: t=   | story | Regenerate the TOC file every time the file is saved |
+| =#+WRITING_NORMALIZE_CHAT_ON_SAVE: t= | story | Indent chat block content on every save              |
+| =#+WRITING_TOC_TARGET: filename.org=  | toc   | The story file this TOC file points to               |
 
 ** Table of Contents Document
 =WRITING_TOC_TARGET= is automatically defined when the =*_toc.org= document is generated. It is needed for =toc= links to be able to find the buffer containing the story that you'd like to jump to a location in.
