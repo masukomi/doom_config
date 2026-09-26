@@ -233,6 +233,65 @@ Does nothing if that theme is already active."
 (add-hook 'window-selection-change-functions #'masukomi/sync-theme-to-buffer)
 (add-hook 'after-change-major-mode-hook #'masukomi/sync-theme-to-buffer)
 
+(defvar masukomi/theme-faces nil
+  "Faces whose attributes differ between the prose and code themes.
+Each entry is (FACE :prose PLIST :code PLIST). An attribute that one plist
+declares and the other omits is reset to `unspecified' on switch, so the two
+sets cannot bleed into each other. Edit the `setq' below, re-evaluate it, then
+either switch themes or run `masukomi/reapply-theme-faces' (C-c v t r).")
+
+(defun masukomi/theme-kind-for-theme (theme)
+  "Return `prose', `code', or nil for THEME."
+  (cond ((eq theme masukomi/prose-theme) 'prose)
+        ((eq theme masukomi/default-theme) 'code)))
+
+(defun masukomi/plist-keys (plist)
+  "Return the keys of PLIST."
+  (cl-loop for key in plist by #'cddr collect key))
+
+(defun masukomi/apply-theme-faces (kind)
+  "Apply the KIND (`prose' or `code') half of every `masukomi/theme-faces' entry.
+Attributes the other half declares but this one omits are reset to
+`unspecified', otherwise they would persist across the switch."
+  (dolist (entry masukomi/theme-faces)
+    (let* ((face   (car entry))
+           (spec   (cdr entry))
+           (wanted (plist-get spec (if (eq kind 'prose) :prose :code)))
+           (other  (plist-get spec (if (eq kind 'prose) :code :prose)))
+           (keys   (masukomi/plist-keys wanted))
+           (resets nil))
+      ;; set-face-attribute errors on an undefined face, so skip quietly.
+      (when (facep face)
+        (dolist (key (masukomi/plist-keys other))
+          (unless (memq key keys)
+            (setq resets (append resets (list key 'unspecified)))))
+        (apply #'set-face-attribute face nil (append resets wanted))))))
+
+(defun masukomi/apply-theme-faces-h (theme)
+  "Re-apply `masukomi/theme-faces' after THEME is enabled."
+  (let ((kind (masukomi/theme-kind-for-theme theme)))
+    (when kind (masukomi/apply-theme-faces kind))))
+
+;; Depth 100 puts this after Doom's own `doom-enable-theme-h' (depth -90).
+;; The hook also fires for the `user' pseudo-theme, which the nil kind filters out.
+(add-hook 'enable-theme-functions #'masukomi/apply-theme-faces-h 100)
+
+(defun masukomi/reapply-theme-faces ()
+  "Re-apply `masukomi/theme-faces' for the currently active theme.
+Needed after editing the spec while already on the target theme, since no
+theme change occurs in that case."
+  (interactive)
+  (masukomi/apply-theme-faces-h (car custom-enabled-themes))
+  (message "Re-applied theme face tweaks"))
+
+(setq masukomi/theme-faces
+      '((writing/dialogue-face
+         :prose (:foreground "#3881E2")
+         :code  (:foreground "#9ab9e2"))
+        (writing/bracketed-face
+         :prose (:foreground "#8a4b10")
+         :code  (:foreground "#E0A458"))))
+
 (defun masukomi/org-set-pinned-theme (kind)
   "Write KIND (`prose' or `code') into this buffer's PINNED_THEME keyword.
 Updates the keyword in place if the preamble already has one, otherwise adds it
@@ -280,8 +339,9 @@ remembered for this buffer only."
 
 (map! (:prefix ("C-c v" . "masukomi")
        (:prefix ("t" . "themes")
-        :desc "Prose theme" "p" #'masukomi/use-prose-theme
-        :desc "Code theme"  "c" #'masukomi/use-code-theme)))
+        :desc "Prose theme"         "p" #'masukomi/use-prose-theme
+        :desc "Code theme"          "c" #'masukomi/use-code-theme
+        :desc "Reapply face tweaks" "r" #'masukomi/reapply-theme-faces)))
 
 (custom-set-faces!
   '(cursor :background "#AA00FF") ; doesn't seem to work

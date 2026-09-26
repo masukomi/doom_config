@@ -639,6 +639,80 @@ Does nothing if that theme is already active."
 (add-hook 'after-change-major-mode-hook #'masukomi/sync-theme-to-buffer)
 #+end_src
 
+**** Per-theme face attributes
+A face with one hard-coded colour may only look right under one of the two themes. For example: ~writing/bracketed-face~ and ~writing/dialogue-face~ have colors chosen for  ~gruvbox-dark~, so they wash out on poet's cream background.
+
+~masukomi/theme-faces~ fixes that for /any/ face: give it one set of attributes for the prose theme and another for the code theme, and they're re-applied on every switch.
+
+The machinery keys off the *theme symbol* rather than the current buffer. That matters because Doom runs its own ~doom-load-theme-hook~ inside a ~with-temp-buffer~, where anything buffer-dependent would read the wrong thing. Hooking ~enable-theme-functions~ also means this catches /every/ route to a theme change — the automatic switcher, ~doom/switch-theme~, and plain ~M-x load-theme~.
+
+#+begin_src elisp :tangle config.el
+(defvar masukomi/theme-faces nil
+  "Faces whose attributes differ between the prose and code themes.
+Each entry is (FACE :prose PLIST :code PLIST). An attribute that one plist
+declares and the other omits is reset to `unspecified' on switch, so the two
+sets cannot bleed into each other. Edit the `setq' below, re-evaluate it, then
+either switch themes or run `masukomi/reapply-theme-faces' (C-c v t r).")
+
+(defun masukomi/theme-kind-for-theme (theme)
+  "Return `prose', `code', or nil for THEME."
+  (cond ((eq theme masukomi/prose-theme) 'prose)
+        ((eq theme masukomi/default-theme) 'code)))
+
+(defun masukomi/plist-keys (plist)
+  "Return the keys of PLIST."
+  (cl-loop for key in plist by #'cddr collect key))
+
+(defun masukomi/apply-theme-faces (kind)
+  "Apply the KIND (`prose' or `code') half of every `masukomi/theme-faces' entry.
+Attributes the other half declares but this one omits are reset to
+`unspecified', otherwise they would persist across the switch."
+  (dolist (entry masukomi/theme-faces)
+    (let* ((face   (car entry))
+           (spec   (cdr entry))
+           (wanted (plist-get spec (if (eq kind 'prose) :prose :code)))
+           (other  (plist-get spec (if (eq kind 'prose) :code :prose)))
+           (keys   (masukomi/plist-keys wanted))
+           (resets nil))
+      ;; set-face-attribute errors on an undefined face, so skip quietly.
+      (when (facep face)
+        (dolist (key (masukomi/plist-keys other))
+          (unless (memq key keys)
+            (setq resets (append resets (list key 'unspecified)))))
+        (apply #'set-face-attribute face nil (append resets wanted))))))
+
+(defun masukomi/apply-theme-faces-h (theme)
+  "Re-apply `masukomi/theme-faces' after THEME is enabled."
+  (let ((kind (masukomi/theme-kind-for-theme theme)))
+    (when kind (masukomi/apply-theme-faces kind))))
+
+;; Depth 100 puts this after Doom's own `doom-enable-theme-h' (depth -90).
+;; The hook also fires for the `user' pseudo-theme, which the nil kind filters out.
+(add-hook 'enable-theme-functions #'masukomi/apply-theme-faces-h 100)
+
+(defun masukomi/reapply-theme-faces ()
+  "Re-apply `masukomi/theme-faces' for the currently active theme.
+Needed after editing the spec while already on the target theme, since no
+theme change occurs in that case."
+  (interactive)
+  (masukomi/apply-theme-faces-h (car custom-enabled-themes))
+  (message "Re-applied theme face tweaks"))
+#+end_src
+
+The spec itself lives in its own block, and uses ~setq~ rather than ~defvar~ on purpose: ~C-c C-c~ on a block will /not/ reassign an already-bound ~defvar~, so a ~defvar~ here would silently ignore your edits. Change a colour, ~C-c C-c~ this block, then ~C-c v t r~ to see it immediately — or just switch buffers and let the theme swap pick it up.
+
+Only list the attributes that actually differ. Anything you leave out falls through to the face's own ~defface~ default.
+
+#+begin_src elisp :tangle config.el
+(setq masukomi/theme-faces
+      '((writing/dialogue-face
+         :prose (:foreground "#3881E2")
+         :code  (:foreground "#9ab9e2"))
+        (writing/bracketed-face
+         :prose (:foreground "#8a4b10")
+         :code  (:foreground "#E0A458"))))
+#+end_src
+
 **** Overriding it by hand
 Not every org file is prose. A literate config like /this/ one wants the code theme, so ~C-c v t~ opens a =themes= menu with ~p~ for prose and ~c~ for code.
 
@@ -703,8 +777,9 @@ remembered for this buffer only."
 
 (map! (:prefix ("C-c v" . "masukomi")
        (:prefix ("t" . "themes")
-        :desc "Prose theme" "p" #'masukomi/use-prose-theme
-        :desc "Code theme"  "c" #'masukomi/use-code-theme)))
+        :desc "Prose theme"         "p" #'masukomi/use-prose-theme
+        :desc "Code theme"          "c" #'masukomi/use-code-theme
+        :desc "Reapply face tweaks" "r" #'masukomi/reapply-theme-faces)))
 #+end_src
 
 *** And cursors
