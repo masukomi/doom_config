@@ -206,6 +206,15 @@ and DATE-RANGE properties if present."
     (when (org-entry-get nil prop)
       (org-entry-delete nil prop))))
 
+(defun writing/add-date-text ()
+  "Set the DATE-TEXT property on the current heading, replacing any existing value.
+Prompts for a single line of free text, prefilled with the current value.
+Unlike the other date commands this is a supplementary annotation: DATE,
+DAY-OF-WEEK, DATE-RANGE, and RELATIVE-DATE are left untouched."
+  (interactive)
+  (org-entry-put nil "DATE-TEXT" (read-string "Date text: "
+                                              (org-entry-get nil "DATE-TEXT"))))
+
 (defun writing/add-notes ()
   "Open the NOTES drawer of the current heading, creating it if absent.
 If a PROPERTIES drawer exists, NOTES is inserted after it.
@@ -522,15 +531,16 @@ Switches to evil insert mode when evil is active."
   (add-hook 'after-save-hook #'writing/apply-chat-indentation nil t)
   (writing/apply-chat-indentation)
   (local-set-key (kbd "C-c w c") #'writing/add-character)
-  (local-set-key (kbd "C-c w d") #'writing/add-date)
-  (local-set-key (kbd "C-c w D") #'writing/add-date-range)
-  (local-set-key (kbd "C-c w r") #'writing/add-relative-date)
   (local-set-key (kbd "C-c w l") #'writing/add-location)
   (local-set-key (kbd "C-c w n") #'writing/add-notes)
   (local-set-key (kbd "C-c w p") #'writing/set-point-of-view)
   (local-set-key (kbd "C-c w s") #'writing/toggle-stylization)
   (local-set-key (kbd "C-c w t") #'writing/generate-toc)
   (local-set-key (kbd "C-c w w") #'writing/add-content-warning)
+  (local-set-key (kbd "C-c w d d") #'writing/add-date)
+  (local-set-key (kbd "C-c w d R") #'writing/add-date-range)
+  (local-set-key (kbd "C-c w d r") #'writing/add-relative-date)
+  (local-set-key (kbd "C-c w d t") #'writing/add-date-text)
   (local-set-key (kbd "C-c w m m") #'writing/insert-chat-me)
   (local-set-key (kbd "C-c w m t") #'writing/insert-chat-them)
   )
@@ -540,16 +550,18 @@ Switches to evil insert mode when evil is active."
 (which-key-add-major-mode-key-based-replacements 'org-mode
   "C-c w"   "writing"
   "C-c w c" "add character"
-  "C-c w d" "add date"
-  "C-c w D" "add date range"
-  "C-c w r" "add relative date"
   "C-c w l" "add location"
   "C-c w n" "add notes"
   "C-c w p" "set point-of-view"
   "C-c w s" "toggle stylization"
   "C-c w t" "generate toc"
   "C-c w w" "add chapter content warning"
-  "C-c w m"   "messaging"
+  "C-c w d"   "dates…"
+  "C-c w d d" "add date"
+  "C-c w d R" "add date range"
+  "C-c w d r" "add relative date"
+  "C-c w d t" "add date text"
+  "C-c w m"   "messaging…"
   "C-c w m m" "message from me"
   "C-c w m t" "message from them"
   )

@@ -5,15 +5,21 @@ active in =org-mode= buffers. Press =C-c w= to see the full list via which-key.
 
 * Keybindings
 
-| Key       | Function                     | Description                            |
-|-----------+------------------------------+----------------------------------------|
-| =C-c w c= | =writing/add-character=      | Add a character to the current heading |
-| =C-c w d= | =writing/add-date=           | Set the date on the current heading    |
-| =C-c w l= | =writing/add-location=       | Add a location to the current heading  |
-| =C-c w n= | =writing/add-notes=          | Open / create the NOTES drawer         |
-| =C-c w p= | =writing/set-point-of-view=  | Set the POV character on the heading   |
-| =C-c w s= | =writing/toggle-stylization= | Toggle dialogue highlighting           |
-| =C-c w t= | =writing/generate-toc=       | Generate or refresh the TOC file       |
+| Key         | Function                      | Description                            |
+|-------------+-------------------------------+----------------------------------------|
+| =C-c w c=   | =writing/add-character=       | Add a character to the current heading |
+| =C-c w l=   | =writing/add-location=        | Add a location to the current heading  |
+| =C-c w n=   | =writing/add-notes=           | Open / create the NOTES drawer         |
+| =C-c w p=   | =writing/set-point-of-view=   | Set the POV character on the heading   |
+| =C-c w s=   | =writing/toggle-stylization=  | Toggle dialogue highlighting           |
+| =C-c w t=   | =writing/generate-toc=        | Generate or refresh the TOC file       |
+| =C-c w w=   | =writing/add-content-warning= | Add a content warning to the heading   |
+| =C-c w d d= | =writing/add-date=            | Set the date on the current heading    |
+| =C-c w d R= | =writing/add-date-range=      | Set a start/end date range             |
+| =C-c w d r= | =writing/add-relative-date=   | Set a free-text relative date          |
+| =C-c w d t= | =writing/add-date-text=       | Annotate the heading with date text    |
+| =C-c w m m= | =writing/insert-chat-me=      | Insert a chat message from me          |
+| =C-c w m t= | =writing/insert-chat-them=    | Insert a chat message from them        |
 
 * Commands
 
@@ -35,7 +41,7 @@ When you enter something that doesn't exist as a character ID in the current doc
 
 For example, typing "Bob Smith" would create a new =bob-smith= id, and add it as a character in the current heading. It will also check for that id in =characters.org= and if it is not found it would create a =Bob Smith= heading, and add =bob-smith= as a =character-id= property on that heading.
 
-** =C-c w d= — Add Date
+** =C-c w d d= — Add Date
 
 Sets the =DATE= property on the current heading. Behaviour depends on whether
 =#+WRITING_FICTIONAL_DATES: t= is present in the file.
@@ -50,6 +56,27 @@ Sets the =DATE= property on the current heading. Behaviour depends on whether
 - Prompts for a plain text string with no calendar or date parsing
 - Only sets =DATE=; =DAY-OF-WEEK= is not set
 - Accepts any format: ="The 3rd day of the Harvest Moon"=, ="Day 47"=, etc.
+
+** =C-c w d t= — Add Date Text
+
+Sets the =DATE-TEXT= property on the current heading from a single line of
+free text. Useful for phrasing that a date alone cannot carry, such as
+="the morning after the fire"= or ="three drinks in"=.
+
+Unlike the other date commands, this one is *additive*. =DATE=,
+=DAY-OF-WEEK=, =DATE-RANGE=, and =RELATIVE-DATE= are left untouched, so a
+heading can carry both a real date and its narrative phrasing:
+
+#+begin_example
+:PROPERTIES:
+:DATE:        2024-03-12
+:DAY-OF-WEEK: Tuesday
+:DATE-TEXT:   the morning after the fire
+:END:
+#+end_example
+
+Running it again prefills the prompt with the current value so it can be
+edited rather than retyped.
 
 ** =C-c w l= — Add Location
 
