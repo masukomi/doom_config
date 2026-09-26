@@ -154,6 +154,37 @@ extension. Example: =ji_woos_story.org= → =ji_woos_story_toc.org=.
 Add =#+WRITING_GENERATE_TOC_ON_SAVE: t= to the story file to regenerate the
 TOC automatically on every save.
 
+** =C-c w m m= / =C-c w m t= — Chat Messages
+
+Inserts a chat-message block for rendering text-message exchanges. =C-c w m m=
+produces a =chat-me= block, =C-c w m t= a =chat-them= block:
+
+#+begin_example
+#+begin_chat-me
+hey, you around?
+#+end_chat-me
+#+end_example
+
+Behaviour depends on whether there is a selection:
+
+- *With no selection* — inserts an empty block and places point on the blank
+  line between the markers, switching to evil insert state when evil is active.
+- *With a selection* (typically an evil =VISUAL LINE= selection) — wraps the
+  selected text: the =#+begin_= line goes on a new line before it, the =#+end_=
+  line on a new line after it. The selection is widened to whole lines, so the
+  markers always land at column 0. Point is left on the line below the block in
+  normal state.
+
+=chat-me= blocks are displayed with a 20-space left indent, so the two sides of
+a conversation are visually offset from one another. This is an overlay
+(=line-prefix= / =wrap-prefix=) — no whitespace is added to the file, and
+nothing changes on export. =chat-them= blocks are not indented.
+
+The indent is applied when an org buffer opens, whenever a =chat-me= block is
+inserted, and on every save. It relies on the markers sitting alone at the start
+of their lines; an indented or trailing-whitespace marker line will silently not
+be indented.
+
 * TOC File Usage
 
 Open the story file and its TOC file side by side. Clicking (or pressing

@@ -501,15 +501,52 @@ Uses line-prefix and wrap-prefix overlay properties so no buffer content is chan
             (overlay-put ov 'line-prefix writing/chat-me-prefix)
             (overlay-put ov 'wrap-prefix writing/chat-me-prefix)))))))
 
+(defun writing/wrap-region-in-chat-block (type)
+  "Wrap the active region in a chat block of TYPE (\"me\" or \"them\").
+The region is widened to whole lines so the #+begin_/#+end_ markers land at
+column 0, which `writing/apply-chat-indentation' requires. Leaves point on the
+line following the #+end_ line, with the mark deactivated."
+  (let ((beg (region-beginning))
+        (end (region-end)))
+    ;; Widen to whole lines. An evil visual-line selection can leave END at the
+    ;; beginning of the line *after* the selection; stepping back avoids
+    ;; swallowing that line.
+    (save-excursion
+      (goto-char end)
+      (when (and (bolp) (> end beg))
+        (forward-char -1))
+      (setq end (line-end-position))
+      (goto-char beg)
+      (setq beg (line-beginning-position)))
+    (deactivate-mark)
+    ;; Insert the end marker first so BEG stays valid.
+    (goto-char end)
+    (insert (format "\n#+end_chat-%s" type))
+    (save-excursion
+      (goto-char beg)
+      (insert (format "#+begin_chat-%s\n" type)))
+    ;; Point is at the end of the #+end_ line; step past the block. Stays put
+    ;; if the block ends the buffer with no trailing newline.
+    (forward-line 1)))
+
 (defun writing/insert-chat-block (type)
-  "Insert a chat block of TYPE (\"me\" or \"them\") and place point inside.
-Switches to evil insert mode when evil is active."
-  (insert (format "#+begin_chat-%s\n\n#+end_chat-%s" type type))
-  (forward-line -1)
-  (when (string= type "me")
-    (writing/apply-chat-indentation))
-  (when (bound-and-true-p evil-mode)
-    (evil-insert-state)))
+  "Insert a chat block of TYPE (\"me\" or \"them\").
+With an active region, wraps it: the #+begin_ line goes on a new line before the
+selected text and the #+end_ line on a new line after it, leaving point on the
+line below the block in normal state.
+With no region, inserts an empty block and places point inside it, switching to
+evil insert mode when evil is active."
+  (let ((wrapped (use-region-p)))
+    (if wrapped
+        (writing/wrap-region-in-chat-block type)
+      (insert (format "#+begin_chat-%s\n\n#+end_chat-%s" type type))
+      (forward-line -1))
+    (when (string= type "me")
+      (writing/apply-chat-indentation))
+    (when (bound-and-true-p evil-mode)
+      (if wrapped
+          (when (fboundp 'evil-normal-state) (evil-normal-state))
+        (evil-insert-state)))))
 
 (defun writing/insert-chat-me ()
   "Insert a #+begin_chat-me ... #+end_chat-me block with point inside."
