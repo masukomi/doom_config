@@ -2025,7 +2025,11 @@ mkdir -p ~/Library/Spelling
 cd ~/Library/Spelling
 curl -LO https://cgit.freedesktop.org/libreoffice/dictionaries/plain/en/en_US.dic
 curl -LO https://cgit.freedesktop.org/libreoffice/dictionaries/plain/en/en_US.aff
+# Treat apostrophes as part of a word so contractions like "wasn't" work.
+sed -i '' "s/^WORDCHARS .*/WORDCHARS 0123456789'’/" en_US.aff
 #+end_src
+
+⚠️ The =sed= line matters. Out of the box the =.aff= file's =WORDCHARS= is only =0123456789=. Both hunspell and Emacs use that to decide where words end. Emacs builds its "otherchars" from it in ~ispell-parse-hunspell-affix-file~. Without the apostrophes, "wasn't" gets split into "wasn" + "t", and "wasn" is flagged as misspelled.
 
 Set hunspell as the program ispell will use
 
