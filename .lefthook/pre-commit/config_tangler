@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# If config.org is part of this commit, tangle it and stage the
+# regenerated config.el so the two never drift apart.
+
+set -euo pipefail
+
+ORG_FILE="config.org"
+EL_FILE="config.el"
+EMACS_BIN="${EMACS:-emacs}"
+
+cd "$(git rev-parse --show-toplevel)"
+
+if ! git diff --cached --name-only --diff-filter=ACM | grep -qx "$ORG_FILE"; then
+	exit 0
+fi
+
+if ! git diff --quiet -- "$ORG_FILE"; then
+	echo "config_tangler: warning: $ORG_FILE has unstaged changes;" \
+		"they will be included in the tangled $EL_FILE" >&2
+fi
+
+echo "config_tangler: tangling $ORG_FILE"
+# Doom preserves src block indentation; plain batch Org doesn't, so
+# match Doom here or config.el gets reindented on every commit.
+"$EMACS_BIN" --batch \
+	--eval "(require 'org)" \
+	--eval "(setq org-src-preserve-indentation t)" \
+	--eval "(org-babel-tangle-file \"$ORG_FILE\")"
+
+git add "$EL_FILE"
