@@ -292,6 +292,9 @@ theme change occurs in that case."
          :prose (:foreground "#8a4b10")
          :code  (:foreground "#E0A458"))))
 
+(after! gnus
+  (face-spec-set 'gnus-group-news-low '((t (:weight bold))) 'face-defface-spec))
+
 (defun masukomi/org-set-pinned-theme (kind)
   "Write KIND (`prose' or `code') into this buffer's PINNED_THEME keyword.
 Updates the keyword in place if the preamble already has one, otherwise adds it
@@ -923,7 +926,6 @@ See options: `dired-hide-details-hide-symlink-targets',
          'masu-exclude-verse-blocks))))
 
 (add-to-list 'load-path "~/.config/doom/custom/writing")
-(load "metadata-styling.el")
 
 (load "writing-functionality.el")
 
@@ -1008,13 +1010,14 @@ See options: `dired-hide-details-hide-symlink-targets',
 
   (use-package! ox-zola)
 
-(with-eval-after-load 'ox
+(after! ox
   (require 'ox-hugo)
   (require 'ox-gfm nil t)
   (require 'ox-md)
   (require 'ox-clip)
   (require 'ox-publish)
-  (require 'ox-slack))
+  (require 'ox-slack)
+  (require 'ox-epub-k))
 
 (with-eval-after-load 'org
   (org-link-set-parameters
@@ -1380,7 +1383,7 @@ See options: `dired-hide-details-hide-symlink-targets',
 	'raku-script-skeleton)
 
 ;;------------- RUBY
-(after! 'ruby-mode
+(after! ruby-mode
   (require 'ruby-tools))
 (setq-default flycheck-disabled-checkers '(ruby-rubocop ruby-reek))
 

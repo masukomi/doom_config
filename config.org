@@ -713,6 +713,18 @@ Only list the attributes that actually differ. Anything you leave out falls thro
          :code  (:foreground "#E0A458"))))
 #+end_src
 
+**** Breaking the gnus face cycle
+Switching themes with gnus loaded used to blow up with =Face inheritance results in inheritance cycle: gnus-group-news-low= on nearly every buffer change.
+
+Emacs defines ~gnus-group-news-low~ as inheriting from ~gnus-group-news-low-empty~. doom-themes defines the inheritance the /other/ way round: ~-empty~ inherits from ~gnus-group-news-low~. That's fine while a theme is fully applied, because the theme overrides both. But ~enable-theme~ walks a theme's face settings in reverse order, so it applies the ~-empty~ spec first — and for a moment the Emacs default on ~gnus-group-news-low~ is still in force, pointing straight back. Cycle, error, and the theme swap aborts half-way.
+
+The fix is to drop the inherit from the Emacs default, so there's nothing for the theme's spec to loop back into. The theme still sets both faces afterwards exactly as it always did.
+
+#+begin_src elisp :tangle config.el
+(after! gnus
+  (face-spec-set 'gnus-group-news-low '((t (:weight bold))) 'face-defface-spec))
+#+end_src
+
 **** Overriding it by hand
 Not every org file is prose. A literate config like /this/ one wants the code theme, so ~C-c v t~ opens a =themes= menu with ~p~ for prose and ~c~ for code.
 
@@ -1875,16 +1887,11 @@ So, we need to exclude them from export
 For the full list of ~org-export-filter-*~ options look at the ~org-export-options-alist~ constant in =lisp/ox.el=
 
 ** Writing Hacks
-I want to be able to leave notes to myself within a chapter, but have them be visually distinct from the chapter's content.
-
-Now, any heading with the =:noexport:= tag will get styled in purple
-
 #+begin_src elisp :tangle config.el
 (add-to-list 'load-path "~/.config/doom/custom/writing")
-(load "metadata-styling.el")
 #+end_src
 
-Next, we want bundle in any custom functionality around our writing process.
+We want bundle in any custom functionality around our writing process.
 - NOTES drawers won't be exported
 
 The following functions are also added to add metadata to the =PROPERTIES= drawer.
@@ -2153,18 +2160,15 @@ Packages prefixed with ~ox-*~ are Org-mode eXporter packages. The most common on
     - Accept plugin functions to extend range of publishable content
   #+end_quote
 
-  #+begin_src
-  #+end_src
-
 #+begin_src elisp :tangle config.el
-(with-eval-after-load 'ox
+(after! ox
   (require 'ox-hugo)
   (require 'ox-gfm nil t)
   (require 'ox-md)
   (require 'ox-clip)
   (require 'ox-publish)
-  (require 'ox-slack))
-
+  (require 'ox-slack)
+  (require 'ox-epub-k))
 #+end_src
 
 *** Hugo
@@ -3017,7 +3021,7 @@ We're going to disable the rubocop & reek flycheck checkers. Especially rubocop 
 
 #+BEGIN_SRC elisp :tangle config.el
 ;;------------- RUBY
-(after! 'ruby-mode
+(after! ruby-mode
   (require 'ruby-tools))
 (setq-default flycheck-disabled-checkers '(ruby-rubocop ruby-reek))
 #+END_SRC
