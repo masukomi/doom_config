@@ -128,7 +128,7 @@ Ensures an entry exists in locations.org."
     (writing/ensure-in-registry input id "locations.org" "location-id" "Locations")))
 
 (defun writing/add-content-warning ()
-  "Add a content warning to the CONTENT_WARNINGS property of the current org heading.
+  "Add a content warning to the CONTENT-WARNINGS property of the current org heading.
 Presents existing content warning IDs from the buffer for completion. Accepts
 either an existing ID or a new display name (which is converted to an ID).
 Ensures an entry exists in content_warnings.org."
@@ -136,8 +136,31 @@ Ensures an entry exists in content_warnings.org."
   (let* ((result (writing/read-entity-input "Content Warning: " "content-warning-id" "content_warnings.org"))
          (id (car result))
          (input (cdr result)))
-    (writing/add-to-property "CONTENT_WARNINGS" id)
+    (writing/add-to-property "CONTENT-WARNINGS" id)
     (writing/ensure-in-registry input id "content_warnings.org" "content-warning-id" "Content Warnings")))
+
+; CONTENT WARNING BLOCKS
+; C-c C-, w inserts a #+begin_content-warning <id> block. The alist can only
+; hold static strings, so the ID prompt is bolted on via advice: org accepts
+; a type with trailing text (as with "export html") and uses only the first
+; word for the #+end_ line.
+(with-eval-after-load 'org
+  (add-to-list 'org-structure-template-alist '("w" . "content-warning")))
+
+(defun writing/structure-template-content-warning (args)
+  "Prompt for a content warning ID when the structure type is content-warning.
+Offers the IDs in content_warnings.org for completion (as C-c w w does),
+ensures the chosen entry exists there, and returns ARGS with the ID
+appended to the type."
+  (if (string= (car args) "content-warning")
+      (let* ((result (writing/read-entity-input "Content Warning: " "content-warning-id" "content_warnings.org"))
+             (id (car result))
+             (input (cdr result)))
+        (writing/ensure-in-registry input id "content_warnings.org" "content-warning-id" "Content Warnings")
+        (cons (concat "content-warning " id) (cdr args)))
+    args))
+
+(advice-add 'org-insert-structure-template :filter-args #'writing/structure-template-content-warning)
 
 (defun writing/add-date ()
   "Set the DATE property on the current heading, replacing any existing value.

@@ -154,6 +154,23 @@ extension. Example: =ji_woos_story.org= → =ji_woos_story_toc.org=.
 Add =#+WRITING_GENERATE_TOC_ON_SAVE: t= to the story file to regenerate the
 TOC automatically on every save.
 
+** =C-c C-, w= — Content Warning Block
+
+Adds a =content-warning= entry (key =w=) to org's standard block menu
+(=C-c C-,=, =org-insert-structure-template=). Choosing it prompts for a
+content warning ID with the same completion list as =C-c w w= (the
+=content-warning-id= values in =content_warnings.org=), and inserts:
+
+#+begin_example
+#+begin_content-warning kidnapped-kittens
+
+#+end_content-warning
+#+end_example
+
+A new name typed at the prompt is converted to an ID and added to
+=content_warnings.org=, exactly as =C-c w w= does. With an active region the
+block wraps the selection, as with any other org block.
+
 ** =C-c w m m= / =C-c w m t= — Chat Messages
 
 Inserts a chat-message block for rendering text-message exchanges. =C-c w m m=
