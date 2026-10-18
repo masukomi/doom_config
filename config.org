@@ -2139,9 +2139,25 @@ Packages prefixed with ~ox-*~ are Org-mode eXporter packages. The most common on
   ; enable ox-leanpub functionality
   (use-package! ox-leanpub :after org)
   #+end_src
-- ox-zola
-  #+begin_src elisp
+- [[https://github.com/gicrisf/ox-zola][ox-zola]]
+  ox-zola tells you to define ~ox-zola-base-dir~ and ~ox-zola-section~ either with ~setq~ or in the file you're posting. The former only works if you only have one zola site. The latter sucks if you ever add files to the site.
+
+  I define mine in a ~.dir-locals.el~ at the root of the site, but I don't want to constantly be asked to approve them every time i set up a new site, or convert another one from hugo, so I'm defining these as safe.
+
+   #+begin_src elisp :tangle config.el
   (use-package! ox-zola)
+  (put 'ox-zola-base-dir 'safe-local-variable #'stringp)
+  (put 'ox-zola-section 'safe-local-variable #'stringp)
+  #+end_src
+
+  Example ~.dir-locals.el~
+
+  #+begin_src elisp
+    ((nil . (
+            (ox-zola-base-dir . "~/workspace/weblog.masukomi.org/")
+            (ox-zola-section . "blog") ; i think "posts" is the norm for most themes. Maybe.
+            ))
+    )
   #+end_src
 - [[https://github.com/emacsmirror/org/blob/master/lisp/ox-md.el][ox-md]]
   exports to standard Markdown
