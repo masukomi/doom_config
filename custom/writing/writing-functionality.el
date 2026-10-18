@@ -657,6 +657,19 @@ already-indented lines are left alone, so running this repeatedly is safe."
   (interactive)
   (writing/insert-chat-block "them"))
 
+(defun writing/make-unnumbered-chapter ()
+  "Mark the current heading as an unnumbered chapter.
+Sets the EXCLUDE_FROM_CHAPTER_COUNT property to t."
+  (interactive)
+  (org-entry-put nil "EXCLUDE_FROM_CHAPTER_COUNT" "t")
+  (message "Chapter excluded from chapter count"))
+
+(defun writing/exclude-chapter-from-export ()
+  "Add the noexport tag to the current heading."
+  (interactive)
+  (org-toggle-tag "noexport" 'on)
+  (message "Chapter excluded from export"))
+
 (defun writing/org-mode-setup ()
   (when (string-match-p "_toc\\.org\\'" (or (buffer-file-name) ""))
     (nlinum-mode -1)
@@ -680,6 +693,8 @@ already-indented lines are left alone, so running this repeatedly is safe."
   (local-set-key (kbd "C-c w d t") #'writing/add-date-text)
   (local-set-key (kbd "C-c w m m") #'writing/insert-chat-me)
   (local-set-key (kbd "C-c w m t") #'writing/insert-chat-them)
+  (local-set-key (kbd "C-c w e u") #'writing/make-unnumbered-chapter)
+  (local-set-key (kbd "C-c w e e") #'writing/exclude-chapter-from-export)
   )
 
 (add-hook 'org-mode-hook #'writing/org-mode-setup)
@@ -701,4 +716,7 @@ already-indented lines are left alone, so running this repeatedly is safe."
   "C-c w m"   "messaging…"
   "C-c w m m" "message from me"
   "C-c w m t" "message from them"
+  "C-c w e"   "export options…"
+  "C-c w e u" "unnumbered chapter"
+  "C-c w e e" "exclude from export"
   )
