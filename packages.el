@@ -194,6 +194,9 @@
 ; -- SQL
 (package! sql-indent)
 
+; -- Svelte
+(package! svelte-mode)
+
 ; -- Wisp
 ; whitespace indented scheme
 ; https://www.draketo.de/software/wisp
@@ -230,6 +233,8 @@
 (package! org-modern)
 (package! ox-clip)
 (package! ox-epub)
+(package! ox-epub-k
+   :recipe (:local-repo "~/workspace/ox-epub-k"))
 (package! ox-gfm)
 ; ox-pandoc has a lot of configuration stuff
 ; https://github.com/kawabata/ox-pandoc
