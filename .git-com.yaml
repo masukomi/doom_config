@@ -32,5 +32,6 @@ code-sections:
   - writing
   - packages
   - org-mode
+  - meta
   modifiable: true
   record-as: joined-string
