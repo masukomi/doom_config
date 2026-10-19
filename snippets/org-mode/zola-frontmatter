@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: zola-frontmatter
+# key: zfm
+# --
+#+author: masukomi
+#+hugo_auto_set_lastmod: t
+#+date: `(format-time-string "%Y-%m-%dT%T%z")`
+#+toc: headlines 3
+#+zola_draft: false
+#+zola_section: ${2:blog}
+#+zola_paired_shortcodes: spoiler
+#+zola_custom_front_matter: :description "SUMMARIZE ME & set og_image vvv"
+#+zola_custom_front_matter: :path "`(format-time-string "/%Y/%m/%d/")``(downcase (replace-regexp-in-string "[ _]+" "-" (file-name-base (or buffer-file-name "untitled"))))`"
+#+zola_custom_front_matter: :taxonomies '((tags . ("${1:tag}")))
+#+zola_custom_front_matter: :extra '((og_image . "`(format-time-string "/images/%Y/%m/%d/")`"))
