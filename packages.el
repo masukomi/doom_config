@@ -180,7 +180,7 @@
 (package! rubocop :disable t) ; arg fuck off rubocop!
 (package! rspec-mode)
 ;; (package! ruby-hash-syntax)
-;; (package! ruby-tools) ; https://github.com/rejeep/ruby-tools.el
+(package! ruby-tools) ; https://github.com/rejeep/ruby-tools.el
 
 ; -- Rust
 (package! rust-mode)
@@ -246,8 +246,9 @@
 (package! org-wc)
 (package! wc-mode)
 (package! toc-org) ; table of contents generator
-;; (package! ox-zola :recipe (:host github :repo "gicrisf/ox-zola"))
-(package! ox-zola :recipe (:local-repo "/Users/masukomi/workspace/reference/elisp/ox-zola"))
+(package! ox-zola :recipe (:host github :repo "gicrisf/ox-zola"))
+;; note: i have no idea why I'm using a local copy.
+;; (package! ox-zola :recipe (:local-repo "/Users/masukomi/workspace/reference/elisp/ox-zola"))
 
 ; UTILITIES
 
