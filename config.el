@@ -351,6 +351,11 @@ remembered for this buffer only."
   '(cursor :foreground "#FFFFFF")
         )
 
+(defadvice! masukomi/recalc-cursor-before-evil-caches-it-a (&rest _)
+  "Reset the `cursor' face from the active theme before Doom caches its color for evil."
+  :before #'+evil-update-cursor-color-h
+  (custom-theme-recalc-face 'cursor))
+
 (use-package! winpulse
   :config
   (setq winpulse-duration 1.0)

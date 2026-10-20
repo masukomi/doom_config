@@ -808,6 +808,20 @@ Without the following I end up with a black cursor with almost black text inside
         )
 #+end_src
 
+**** Keeping evil from freezing the cursor color
+Doom's evil module caches the cursor color on every theme load (~+evil-update-cursor-color-h~ on ~doom-load-theme-hook~) and evil re-applies that cached color every time the cursor is refreshed. The cache is filled by reading the /realized/ ~cursor~ face, not the theme's spec.
+
+Since the Doom upgrade, ~indent-bars~ sits on ~enable-theme-functions~ and calls ~select-window~ while a theme is still being enabled. Evil advises ~select-window~ to refresh the cursor, so the stale cached color (gruvbox's white) gets written back onto the frame /before/ Doom re-reads it. Doom then caches white again, forever, and poet's dark cursor never shows up.
+
+Recalculating the ~cursor~ face from the active theme's spec right before Doom samples it breaks the loop. Evil's next refresh then paints the correct color.
+
+#+begin_src elisp :tangle config.el
+(defadvice! masukomi/recalc-cursor-before-evil-caches-it-a (&rest _)
+  "Reset the `cursor' face from the active theme before Doom caches its color for evil."
+  :before #'+evil-update-cursor-color-h
+  (custom-theme-recalc-face 'cursor))
+#+end_src
+
 Henrik's advice is to use ~custom-set-faces!~ in most situations, but when you are doing something like configuring a thing that isn't static to begin with (different heading colors of different headings in an org-mode file for example) you should use ~set-face-attribute~. He provides an example [[https://discourse.doomemacs.org/t/how-to-best-change-face-settings-custom-set-faces-or-set-face-attribute/2721][in this thread]].
 
 *** And what buffer that cursor is in…
