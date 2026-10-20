@@ -1012,12 +1012,6 @@ See options: `dired-hide-details-hide-symlink-targets',
   (put 'ox-zola-base-dir 'safe-local-variable #'stringp)
   (put 'ox-zola-section 'safe-local-variable #'stringp)
 
-    ((nil . (
-            (ox-zola-base-dir . "~/workspace/weblog.masukomi.org/")
-            (ox-zola-section . "blog") ; i think "posts" is the norm for most themes. Maybe.
-            ))
-    )
-
 (after! ox
   (require 'ox-hugo)
   (require 'ox-gfm nil t)

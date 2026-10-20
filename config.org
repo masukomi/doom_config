@@ -2152,7 +2152,7 @@ Packages prefixed with ~ox-*~ are Org-mode eXporter packages. The most common on
 
   Example ~.dir-locals.el~
 
-  #+begin_src elisp
+  #+begin_src elisp :tangle no
     ((nil . (
             (ox-zola-base-dir . "~/workspace/weblog.masukomi.org/")
             (ox-zola-section . "blog") ; i think "posts" is the norm for most themes. Maybe.
