@@ -29,7 +29,6 @@ code-sections:
   options:
   - ui
   - ux
-  - writing
   - packages
   - org-mode
   - meta

@@ -640,7 +640,7 @@ Does nothing if that theme is already active."
 #+end_src
 
 **** Per-theme face attributes
-A face with one hard-coded colour may only look right under one of the two themes. For example: ~writing/bracketed-face~ and ~writing/dialogue-face~ have colors chosen for  ~gruvbox-dark~, so they wash out on poet's cream background.
+A face with one hard-coded colour may only look right under one of the two themes. For example: ~writing-k-bracketed~ and ~writing-k-dialogue~ have colors chosen for  ~gruvbox-dark~, so they wash out on poet's cream background.
 
 ~masukomi/theme-faces~ fixes that for /any/ face: give it one set of attributes for the prose theme and another for the code theme, and they're re-applied on every switch.
 
@@ -705,10 +705,10 @@ Only list the attributes that actually differ. Anything you leave out falls thro
 
 #+begin_src elisp :tangle config.el
 (setq masukomi/theme-faces
-      '((writing/dialogue-face
+      '((writing-k-dialogue
          :prose (:foreground "#3881E2")
          :code  (:foreground "#9ab9e2"))
-        (writing/bracketed-face
+        (writing-k-bracketed
          :prose (:foreground "#8a4b10")
          :code  (:foreground "#E0A458"))))
 #+end_src
@@ -1901,26 +1901,14 @@ So, we need to exclude them from export
 For the full list of ~org-export-filter-*~ options look at the ~org-export-options-alist~ constant in =lisp/ox.el=
 
 ** Writing Hacks
-#+begin_src elisp :tangle config.el
-(add-to-list 'load-path "~/.config/doom/custom/writing")
-#+end_src
+The fiction-writing helpers (characters, locations, point of view, dates, content warnings, NOTES drawers, dialogue highlighting, TOC files, chat blocks) live in the [[https://github.com/masukomi/writing-k][writing-k]] package, installed from a local checkout in =packages.el=. Its README documents every command and file keyword.
 
-We want bundle in any custom functionality around our writing process.
-- NOTES drawers won't be exported
-
-The following functions are also added to add metadata to the =PROPERTIES= drawer.
-
-- =C-c w c= → =writing/add-character=
-- =C-c w l= → =writing/add-location=
-- =C-c w p= → =writing/set-point-of-view=
-
-And last, but not least, toggling visual styling to help with writing.
-
-- =C-c w s= → =writing/toggle-stylization=
-  Note: this will add ~#+WRITING_STYLIZATION: t~ or ~nil~ to the file keywords.
+The package claims no keys of its own, so ~writing-k-keymap-prefix~ puts its command map under =C-c w=. Press that to see the list via which-key.
 
 #+begin_src elisp :tangle config.el
-(load "writing-functionality.el")
+(use-package! writing-k
+  :custom (writing-k-keymap-prefix (kbd "C-c w"))
+  :hook (org-mode . writing-k-mode))
 #+end_src
 
 

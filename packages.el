@@ -202,7 +202,7 @@
 ; https://www.draketo.de/software/wisp
 ; ships with Guile
 ;
-; (package! wisp-mode)
+(package! wisp-mode)
 
 ; -- Yaml
 (package! yaml-mode)
@@ -235,6 +235,9 @@
 (package! ox-epub)
 (package! ox-epub-k
    :recipe (:local-repo "~/workspace/ox-epub-k"))
+; fiction-writing helpers (characters, dates, TOC, chat blocks…)
+(package! writing-k
+   :recipe (:local-repo "~/workspace/writing-k"))
 (package! ox-gfm)
 ; ox-pandoc has a lot of configuration stuff
 ; https://github.com/kawabata/ox-pandoc

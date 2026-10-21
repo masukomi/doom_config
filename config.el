@@ -285,10 +285,10 @@ theme change occurs in that case."
   (message "Re-applied theme face tweaks"))
 
 (setq masukomi/theme-faces
-      '((writing/dialogue-face
+      '((writing-k-dialogue
          :prose (:foreground "#3881E2")
          :code  (:foreground "#9ab9e2"))
-        (writing/bracketed-face
+        (writing-k-bracketed
          :prose (:foreground "#8a4b10")
          :code  (:foreground "#E0A458"))))
 
@@ -930,9 +930,9 @@ See options: `dired-hide-details-hide-symlink-targets',
      (add-to-list 'org-export-filter-verse-block-functions
          'masu-exclude-verse-blocks))))
 
-(add-to-list 'load-path "~/.config/doom/custom/writing")
-
-(load "writing-functionality.el")
+(use-package! writing-k
+  :custom (writing-k-keymap-prefix (kbd "C-c w"))
+  :hook (org-mode . writing-k-mode))
 
 ; enable shift selection
 (setq org-support-shift-select t)
